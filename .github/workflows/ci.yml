@@ -1,0 +1,142 @@
+name: RAGAA Flutter CI & Desktop Builds
+
+on:
+  push:
+    branches-ignore:
+      - 'gh-pages'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ragaa-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    name: Analyze & Test (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install SQLite development library
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsqlite3-dev sqlite3
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run static analysis
+        run: flutter analyze
+
+      - name: Run automated Flutter tests
+        run: flutter test --reporter expanded --coverage
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-lcov
+          path: coverage/lcov.info
+          retention-days: 14
+
+  build-windows:
+    name: Build Windows Preview (x64)
+    needs: analyze-and-test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop & get dependencies
+        run: |
+          flutter config --enable-windows-desktop
+          flutter pub get
+
+      - name: Build Windows release executable
+        env:
+          JAVA_HOME: ""
+        run: flutter build windows --release
+
+      - name: Verify bundled executable and SQLite DLL & package ZIP
+        shell: pwsh
+        run: |
+          $releaseDir = "build/windows/x64/runner/Release"
+          if (!(Test-Path "$releaseDir/ragaa.exe")) {
+            throw "ragaa.exe was not generated!"
+          }
+          if (!(Test-Path "$releaseDir/sqlite3.dll")) {
+            throw "sqlite3.dll was not bundled!"
+          }
+          $readmeContent = @"
+          RAGAA — نظام إدارة تحصيل المنافذ (نسخة Windows التجريبية)
+          =========================================================
+          طريقة التشغيل:
+          1. فك الضغط عن كامل المجلد في مكان ثابت على الجهاز (مثل D:\RAGAA).
+          2. شغّل الملف ragaa.exe مباشرة (لا تنقل ragaa.exe بمفرده خارج المجلد).
+          3. تُحفظ قاعدة البيانات SQLite تلقائيًا في مجلد بيانات التطبيق الآمن على Windows،
+             وتُحفظ النسخ الاحتياطية والتقارير المصدّرة (PDF / Excel) داخل Documents\RAGAA.
+          "@
+          Set-Content -Path "$releaseDir/README_AR.txt" -Value $readmeContent -Encoding UTF8
+          New-Item -ItemType Directory -Force -Path "artifacts" | Out-Null
+          Compress-Archive -Path "$releaseDir/*" -DestinationPath "artifacts/RAGAA-Windows-x64-Preview.zip" -Force
+
+      - name: Upload Windows Preview build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RAGAA-Windows-x64-Preview
+          path: artifacts/RAGAA-Windows-x64-Preview.zip
+          retention-days: 30
+
+  build-linux:
+    name: Build Linux Preview (x64)
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux desktop dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsqlite3-dev
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Linux desktop & get dependencies
+        run: |
+          flutter config --enable-linux-desktop
+          flutter pub get
+
+      - name: Build Linux release bundle
+        env:
+          JAVA_HOME: ""
+        run: flutter build linux --release
+
+      - name: Package Linux tar.gz
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/RAGAA-Linux-x64-Preview.tar.gz -C build/linux/x64/release bundle
+
+      - name: Upload Linux Preview build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RAGAA-Linux-x64-Preview
+          path: artifacts/RAGAA-Linux-x64-Preview.tar.gz
+          retention-days: 30
