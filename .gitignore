@@ -9,3 +9,15 @@ coverage/
 .idea/
 *.iml
 **/ephemeral/
+.vscode/
+.DS_Store
+Thumbs.db
+android/.gradle/
+android/local.properties
+android/key.properties
+android/**/*.jks
+android/**/*.keystore
+*.sqlite
+*.db
+*.db-wal
+*.db-shm
