@@ -7,9 +7,10 @@ void main() => runApp(const RagaaApp());
 class Outlet {
   final String id;
   final String name;
-  const Outlet(this.id, this.name);
-  Map<String, dynamic> toJson() => {'id': id, 'name': name};
-  factory Outlet.fromJson(Map<String, dynamic> j) => Outlet(j['id'] as String, j['name'] as String);
+  final int shiftCount;
+  const Outlet(this.id, this.name, this.shiftCount);
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'shiftCount': shiftCount};
+  factory Outlet.fromJson(Map<String, dynamic> j) => Outlet(j['id'] as String, j['name'] as String, (j['shiftCount'] as int?) ?? 2);
 }
 
 class Collection {
@@ -47,18 +48,19 @@ class RagaaStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addOutlet(String name) async {
+  Future<void> addOutlet(String name, int shiftCount) async {
+    if (shiftCount != 2 && shiftCount != 3) throw const FormatException('عدد الورديات يجب أن يكون 2 أو 3');
     final clean = name.trim();
     if (clean.isEmpty || outlets.any((o) => o.name.toLowerCase() == clean.toLowerCase())) {
       throw const FormatException('اسم المنفذ فارغ أو مكرر');
     }
-    outlets.add(Outlet(DateTime.now().microsecondsSinceEpoch.toString(), clean));
+    outlets.add(Outlet(DateTime.now().microsecondsSinceEpoch.toString(), clean, shiftCount));
     await _save();
   }
 
   Future<void> saveCollection(Collection record) async {
     if (!outlets.any((o) => o.id == record.outletId) ||
-        record.shift < 1 || record.shift > 2 || record.piastres < 0 ||
+        record.shift < 1 || record.shift > outlets.firstWhere((o) => o.id == record.outletId).shiftCount || record.piastres < 0 ||
         DateTime.tryParse(record.day) == null) {
       throw const FormatException('بيانات التحصيل غير صحيحة');
     }
@@ -121,13 +123,17 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _addOutlet() async {
     final controller = TextEditingController();
+    int shiftCount = 2;
     final name = await showDialog<String>(context: context, builder: (ctx) =>
-      AlertDialog(title: const Text('إضافة منفذ'), content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'اسم المنفذ')),
+      StatefulBuilder(builder: (ctx, update) => AlertDialog(title: const Text('إضافة منفذ'), content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'اسم المنفذ')),
+        DropdownButtonFormField<int>(initialValue: shiftCount, decoration: const InputDecoration(labelText: 'عدد الورديات يوميًا'), items: const [DropdownMenuItem(value: 2, child: Text('ورديتان')), DropdownMenuItem(value: 3, child: Text('3 ورديات'))], onChanged: (v) { if (v != null) update(() => shiftCount = v); }),
+      ]),
         actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('حفظ'))]));
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('حفظ'))])));
     controller.dispose();
     if (name == null) return;
-    try { await store.addOutlet(name); } catch (e) { _error(e.toString()); }
+    try { await store.addOutlet(name, shiftCount); } catch (e) { _error(e.toString()); }
   }
 
   Future<void> _addCollection() async {
@@ -136,15 +142,16 @@ class _HomePageState extends State<HomePage> {
     int selectedShift = 1;
     DateTime day = DateTime.now();
     final amount = TextEditingController();
+    int countFor(String id) => store.outlets.firstWhere((o) => o.id == id).shiftCount;
     final result = await showDialog<Collection>(context: context, builder: (ctx) =>
       StatefulBuilder(builder: (ctx, update) => AlertDialog(
         title: const Text('تسجيل تحصيل وردية'),
         content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
           DropdownButtonFormField<String>(initialValue: outletId, decoration: const InputDecoration(labelText: 'المنفذ'),
             items: store.outlets.map((o) => DropdownMenuItem(value: o.id, child: Text(o.name))).toList(),
-            onChanged: (v) { if (v != null) update(() => outletId = v); }),
+            onChanged: (v) { if (v != null) update(() { outletId = v; if (selectedShift > countFor(v)) selectedShift = 1; }); }),
           DropdownButtonFormField<int>(initialValue: selectedShift, decoration: const InputDecoration(labelText: 'الوردية'),
-            items: const [DropdownMenuItem(value: 1, child: Text('الأولى')), DropdownMenuItem(value: 2, child: Text('الثانية'))],
+            items: List.generate(countFor(outletId), (i) => DropdownMenuItem(value: i + 1, child: Text('الوردية ${i + 1}'))),
             onChanged: (v) { if (v != null) update(() => selectedShift = v); }),
           TextButton.icon(onPressed: () async {
             final picked = await showDatePicker(context: ctx, initialDate: day, firstDate: DateTime(2020), lastDate: DateTime(2100));
@@ -198,6 +205,7 @@ class _HomePageState extends State<HomePage> {
     final total = rows.fold<int>(0, (sum, c) => sum + c.piastres);
     final shiftOne = rows.where((c) => c.shift == 1).fold<int>(0, (sum, c) => sum + c.piastres);
     final shiftTwo = rows.where((c) => c.shift == 2).fold<int>(0, (sum, c) => sum + c.piastres);
+    final shiftThree = rows.where((c) => c.shift == 3).fold<int>(0, (sum, c) => sum + c.piastres);
     final names = {for (final o in store.outlets) o.id: o.name};
     return Scaffold(
       appBar: AppBar(title: const Text('RAGAA | إدارة التحصيل')),
@@ -213,7 +221,8 @@ class _HomePageState extends State<HomePage> {
           DropdownButton<int?>(value: shift, hint: const Text('كل الورديات'),
             items: const [DropdownMenuItem<int?>(value: null, child: Text('كل الورديات')),
               DropdownMenuItem<int?>(value: 1, child: Text('الوردية الأولى')),
-              DropdownMenuItem<int?>(value: 2, child: Text('الوردية الثانية'))],
+              DropdownMenuItem<int?>(value: 2, child: Text('الوردية الثانية')),
+              DropdownMenuItem<int?>(value: 3, child: Text('الوردية الثالثة'))],
             onChanged: (v) => setState(() => shift = v)),
         ]),
         if (from.isAfter(to)) const Text('تاريخ البداية يجب ألا يكون بعد تاريخ النهاية', style: TextStyle(color: Colors.red)),
@@ -222,6 +231,7 @@ class _HomePageState extends State<HomePage> {
           _Metric('إجمالي التحصيل', '${money(total)} ج.م'),
           _Metric('الوردية الأولى', '${money(shiftOne)} ج.م'),
           _Metric('الوردية الثانية', '${money(shiftTwo)} ج.م'),
+          _Metric('الوردية الثالثة', '${money(shiftThree)} ج.م'),
           _Metric('عدد المنافذ', '${store.outlets.length}'),
         ]),
         const SizedBox(height: 20),
@@ -229,7 +239,7 @@ class _HomePageState extends State<HomePage> {
         if (rows.isEmpty) const Padding(padding: EdgeInsets.all(20), child: Text('لا توجد بيانات في الفترة المحددة')),
         ...rows.map((c) => Card(child: ListTile(
           title: Text(names[c.outletId] ?? 'منفذ غير معروف'),
-          subtitle: Text('${c.day} — الوردية ${c.shift == 1 ? 'الأولى' : 'الثانية'}'),
+          subtitle: Text('${c.day} — الوردية ${c.shift == 1 ? 'الأولى' : c.shift == 2 ? 'الثانية' : 'الثالثة'}'),
           trailing: Text('${money(c.piastres)} ج.م'),
         ))),
         const SizedBox(height: 16),
