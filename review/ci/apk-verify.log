@@ -46,7 +46,7 @@ OK  assets/flutter_assets/AssetManifest.bin
 OK  AndroidManifest.xml
 --- signature ---
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: d7961ee876256593fc1500d7b380276d14e290c20cf5dd8581a5041ab9037b15
-V2 Signer: certificate SHA-1 digest: 7de83b266ca79ae9cc63509e702df351f4f73588
-V2 Signer: certificate MD5 digest: bd9f8bbbd913fe940a227c66ba1a3e31
--rw-r--r-- 1 runner runner 72586973 Nov 20 23:37 artifacts/RAGAA-release.apk
+V2 Signer: certificate SHA-256 digest: 56d0657a98abd57520714466a3b4b3bb8cdd1ae72fd9290de211e18f09457449
+V2 Signer: certificate SHA-1 digest: bb57e8637045f7f3700e303c87d763ec4654c322
+V2 Signer: certificate MD5 digest: 7a9784e7438e3d8df0dc9749d109a857
+-rw-r--r-- 1 runner runner 72586973 Nov 20 23:57 artifacts/RAGAA-release.apk
