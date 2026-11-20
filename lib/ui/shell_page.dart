@@ -342,31 +342,37 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
             ),
           ),
           body: _buildActivePage(),
-          bottomNavigationBar: NavigationBar(
-            // Four daily screens on the bar and one door to the rest: an
-            // operator on the backup or audit screen sees that module lit in
-            // "المزيد" instead of the bar silently pointing at the dashboard.
-            selectedIndex: _selectedIndex < 4 ? _selectedIndex : 4,
-            onDestinationSelected: (i) {
-              if (i == 4) {
-                _scaffoldKey.currentState?.openDrawer();
-                return;
-              }
-              setState(() => _selectedIndex = i);
-            },
-            destinations: [
-              for (var i = 0; i < 4; i++)
-                NavigationDestination(
-                  icon: Icon(_kNavItems[i].icon),
-                  selectedIcon: Icon(_kNavItems[i].selectedIcon),
-                  label: _kNavItems[i].barLabel,
+          // The five bar labels keep their full Arabic text: the bar is chrome,
+          // so its text scale is clamped instead of being cut with an ellipsis
+          // when the system font is set to 200%. Screen content is unaffected.
+          bottomNavigationBar: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.25,
+            child: NavigationBar(
+              // Four daily screens on the bar and one door to the rest: an
+              // operator on the backup or audit screen sees that module lit in
+              // "المزيد" instead of the bar silently pointing at the dashboard.
+              selectedIndex: _selectedIndex < 4 ? _selectedIndex : 4,
+              onDestinationSelected: (i) {
+                if (i == 4) {
+                  _scaffoldKey.currentState?.openDrawer();
+                  return;
+                }
+                setState(() => _selectedIndex = i);
+              },
+              destinations: [
+                for (var i = 0; i < 4; i++)
+                  NavigationDestination(
+                    icon: Icon(_kNavItems[i].icon),
+                    selectedIcon: Icon(_kNavItems[i].selectedIcon),
+                    label: _kNavItems[i].barLabel,
+                  ),
+                const NavigationDestination(
+                  icon: Icon(Icons.more_horiz),
+                  selectedIcon: Icon(Icons.more),
+                  label: 'المزيد',
                 ),
-              const NavigationDestination(
-                icon: Icon(Icons.more_horiz),
-                selectedIcon: Icon(Icons.more),
-                label: 'المزيد',
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
