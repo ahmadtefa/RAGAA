@@ -13,14 +13,27 @@ import 'pages/reports_page.dart';
 
 class _NavItem {
   final String label;
+
+  /// Shorter label used on the phone bottom bar where every destination only
+  /// gets a narrow slot (the full label stays in the app bar and the drawer).
+  final String? shortLabel;
   final IconData icon;
   final IconData selectedIcon;
 
-  const _NavItem(this.label, this.icon, this.selectedIcon);
+  const _NavItem(this.label, this.icon, this.selectedIcon,
+      {this.shortLabel});
+
+  /// Always fits a bottom navigation slot without being cut.
+  String get barLabel => shortLabel ?? label;
 }
 
 const List<_NavItem> _kNavItems = [
-  _NavItem('لوحة التحكم', Icons.dashboard_outlined, Icons.dashboard),
+  _NavItem(
+    'لوحة التحكم',
+    Icons.dashboard_outlined,
+    Icons.dashboard,
+    shortLabel: 'الرئيسية',
+  ),
   _NavItem('التحصيل', Icons.payments_outlined, Icons.payments),
   _NavItem('المنافذ', Icons.storefront_outlined, Icons.storefront),
   _NavItem('التقارير', Icons.assessment_outlined, Icons.assessment),
@@ -149,7 +162,8 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
 
         if (isDesktop) {
           return Scaffold(
-            floatingActionButton: _newCollectionFab(),
+            floatingActionButton:
+                _selectedIndex == 0 ? null : _newCollectionFab(),
             body: Row(
               children: [
                 Container(
@@ -221,7 +235,9 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
                               NavigationRailDestination(
                                 icon: Icon(item.icon),
                                 selectedIcon: Icon(item.selectedIcon),
-                                label: Text(item.label),
+                                label: Text(
+                                  isExtended ? item.label : item.barLabel,
+                                ),
                               ),
                           ],
                         ),
@@ -247,7 +263,8 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
         // Compact / Android layout
         return Scaffold(
           key: _scaffoldKey,
-          floatingActionButton: _newCollectionFab(),
+          floatingActionButton:
+              _selectedIndex == 0 ? null : _newCollectionFab(),
           appBar: AppBar(
             title: Text('RAGAA | ${_kNavItems[_selectedIndex].label}'),
           ),
@@ -319,7 +336,7 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
                 NavigationDestination(
                   icon: Icon(_kNavItems[i].icon),
                   selectedIcon: Icon(_kNavItems[i].selectedIcon),
-                  label: _kNavItems[i].label,
+                  label: _kNavItems[i].barLabel,
                 ),
               const NavigationDestination(
                 icon: Icon(Icons.more_horiz),

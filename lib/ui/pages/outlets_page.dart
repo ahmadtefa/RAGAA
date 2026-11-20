@@ -5,6 +5,7 @@ import '../../core/app_theme.dart';
 import '../../models/outlet.dart';
 import '../../state/ragaa_controller.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/responsive_layout.dart';
 import '../widgets/outlet_form_dialog.dart';
 
 /// Page for creating outlets and configuring each outlet's independent shift count
@@ -52,7 +53,7 @@ class OutletsPage extends StatelessWidget {
     final outlets = controller.outlets;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: responsivePagePadding(context, withFabInset: true),
       children: [
         Wrap(
           spacing: 12,
@@ -108,64 +109,80 @@ class OutletsPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(9),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppTheme.brandPrimary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.storefront,
-                              color: AppTheme.brandPrimary,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 4,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final identity = Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.brandPrimary
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.storefront,
+                                  color: AppTheme.brandPrimary,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      outlet.name,
-                                      style: const TextStyle(
-                                        fontSize: 16.5,
-                                        fontWeight: FontWeight.w700,
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        Text(
+                                          outlet.name,
+                                          style: const TextStyle(
+                                            fontSize: 16.5,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        StatusBadge(
+                                          text: outlet.shiftCountArabic,
+                                          color: AppTheme.brandPrimary,
+                                        ),
+                                        StatusBadge(
+                                          text: outlet.isActive
+                                              ? 'نشط'
+                                              : 'متوقف',
+                                          color: outlet.isActive
+                                              ? AppTheme.positiveGreen
+                                              : AppTheme.warningAmber,
+                                        ),
+                                      ],
+                                    ),
+                                    if (outlet.notes.isNotEmpty) ...[
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        outlet.notes,
+                                        style: const TextStyle(
+                                          fontSize: 12.5,
+                                          color: Color(0xFF64748B),
+                                        ),
                                       ),
-                                    ),
-                                    StatusBadge(
-                                      text: outlet.shiftCountArabic,
-                                      color: AppTheme.brandPrimary,
-                                    ),
-                                    StatusBadge(
-                                      text: outlet.isActive ? 'نشط' : 'متوقف',
-                                      color: outlet.isActive
-                                          ? AppTheme.positiveGreen
-                                          : AppTheme.warningAmber,
-                                    ),
+                                    ],
                                   ],
                                 ),
-                                if (outlet.notes.isNotEmpty) ...[
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    outlet.notes,
-                                    style: const TextStyle(
-                                      fontSize: 12.5,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Column(
+                              ),
+                            ],
+                          );
+
+                          final editButton = OutlinedButton.icon(
+                            key: Key('edit_outlet_${outlet.id}'),
+                            onPressed: () => _editOutlet(context, outlet),
+                            icon: const Icon(Icons.tune, size: 17),
+                            label: const Text('تعديل الورديات'),
+                          );
+
+                          final moveButtons = Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
@@ -173,7 +190,8 @@ class OutletsPage extends StatelessWidget {
                                 tooltip: 'تحريك المنفذ لأعلى (ترتيب الطباعة)',
                                 onPressed: index == 0
                                     ? null
-                                    : () => controller.moveOutlet(outlet.id, -1),
+                                    : () =>
+                                        controller.moveOutlet(outlet.id, -1),
                                 icon: const Icon(Icons.arrow_upward, size: 18),
                               ),
                               IconButton(
@@ -181,19 +199,76 @@ class OutletsPage extends StatelessWidget {
                                 tooltip: 'تحريك المنفذ لأسفل (ترتيب الطباعة)',
                                 onPressed: index == outlets.length - 1
                                     ? null
-                                    : () => controller.moveOutlet(outlet.id, 1),
-                                icon:
-                                    const Icon(Icons.arrow_downward, size: 18),
+                                    : () =>
+                                        controller.moveOutlet(outlet.id, 1),
+                                icon: const Icon(Icons.arrow_downward, size: 18),
                               ),
                             ],
-                          ),
-                          OutlinedButton.icon(
-                            key: Key('edit_outlet_${outlet.id}'),
-                            onPressed: () => _editOutlet(context, outlet),
-                            icon: const Icon(Icons.tune, size: 17),
-                            label: const Text('تعديل الورديات'),
-                          ),
-                        ],
+                          );
+
+                          // Phones: name on its own line, actions in a wrap
+                          // underneath. Desktop: the compact single row.
+                          if (constraints.maxWidth < 560) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                identity,
+                                const SizedBox(height: 4),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    editButton,
+                                    IconButton(
+                                      key: Key(
+                                        'outlet_move_up_${outlet.id}',
+                                      ),
+                                      tooltip:
+                                          'تحريك المنفذ لأعلى (ترتيب الطباعة)',
+                                      onPressed: index == 0
+                                          ? null
+                                          : () => controller.moveOutlet(
+                                                outlet.id,
+                                                -1,
+                                              ),
+                                      icon: const Icon(
+                                        Icons.arrow_upward,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      key: Key(
+                                        'outlet_move_down_${outlet.id}',
+                                      ),
+                                      tooltip:
+                                          'تحريك المنفذ لأسفل (ترتيب الطباعة)',
+                                      onPressed:
+                                          index == outlets.length - 1
+                                              ? null
+                                              : () => controller.moveOutlet(
+                                                    outlet.id,
+                                                    1,
+                                                  ),
+                                      icon: const Icon(
+                                        Icons.arrow_downward,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: identity),
+                              moveButtons,
+                              editButton,
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 12),
                       Wrap(
@@ -212,17 +287,18 @@ class OutletsPage extends StatelessWidget {
                                 border:
                                     Border.all(color: AppTheme.borderSubtle),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                              child: Wrap(
+                                spacing: 6,
+                                runSpacing: 2,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   const Icon(
                                     Icons.schedule,
                                     size: 16,
                                     color: Color(0xFF475569),
                                   ),
-                                  const SizedBox(width: 6),
                                   Text(
-                                    '${s.label}: ',
+                                    '${s.label}:',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13,
@@ -238,14 +314,12 @@ class OutletsPage extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  if (s.isOvernight && s.endTime != '00:00') ...[
-                                    const SizedBox(width: 6),
+                                  if (s.isOvernight && s.endTime != '00:00')
                                     const Icon(
                                       Icons.nights_stay_outlined,
                                       size: 14,
                                       color: AppTheme.warningAmber,
                                     ),
-                                  ],
                                 ],
                               ),
                             ),

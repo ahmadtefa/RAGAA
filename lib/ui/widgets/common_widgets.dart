@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/app_theme.dart';
+import 'responsive_layout.dart';
 import '../../services/file_dialog_helper.dart';
 
 /// Clean KPI metric card for Dashboard and Report headers.
@@ -35,7 +36,6 @@ class KpiMetricCard extends StatelessWidget {
         highlighted ? Colors.white.withValues(alpha: 0.8) : const Color(0xFF64748B);
 
     return Container(
-      constraints: const BoxConstraints(minWidth: 190),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bg,
@@ -77,14 +77,10 @@ class KpiMetricCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AmountText(
             value,
-            style: TextStyle(
-              fontSize: 21,
-              fontWeight: FontWeight.w700,
-              color: valueColor,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+            fontSize: 21,
+            color: valueColor,
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 4),
@@ -124,35 +120,33 @@ class SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle!,
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ],
+            ResponsiveHeader(
+              breakpoint: 560,
+              spacing: 10,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
+                    ),
                   ),
-                ),
-                if (trailing != null) trailing!,
-              ],
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: trailing ?? const SizedBox.shrink(),
             ),
             const SizedBox(height: 14),
             child,

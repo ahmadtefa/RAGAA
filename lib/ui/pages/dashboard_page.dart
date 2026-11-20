@@ -8,6 +8,7 @@ import '../../models/report_models.dart';
 import '../../state/ragaa_controller.dart';
 import '../widgets/collection_form_dialog.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/responsive_layout.dart';
 import '../widgets/outlet_form_dialog.dart';
 
 /// Main accounting dashboard displaying totals by period, outlet, and shift,
@@ -151,7 +152,8 @@ class _DashboardPageState extends State<DashboardPage> {
     final totalOutletsCount = widget.controller.outlets.length;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      // The dashboard has no floating button, so no extra inset is needed.
+      padding: responsivePagePadding(context),
       children: [
         // Top Header & Quick Actions
         Wrap(
@@ -208,38 +210,30 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         const SizedBox(height: 16),
 
-        // Period Filter Selector
-        Wrap(
-          spacing: 10,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            SegmentedButton<ReportPeriodType>(
-              segments: const [
-                ButtonSegment(
-                  value: ReportPeriodType.daily,
-                  label: Text('اليوم'),
-                ),
-                ButtonSegment(
-                  value: ReportPeriodType.weekly,
-                  label: Text('الأسبوع'),
-                ),
-                ButtonSegment(
-                  value: ReportPeriodType.monthly,
-                  label: Text('الشهر'),
-                ),
-                ButtonSegment(
-                  value: ReportPeriodType.custom,
-                  label: Text('فترة مخصصة'),
-                ),
-              ],
-              selected: {_periodType},
-              onSelectionChanged: (s) {
-                setState(() => _periodType = s.first);
-                _reload();
-              },
-            ),
-            if (_periodType == ReportPeriodType.custom) ...[
+        // Period Filter Selector — segmented buttons on wide screens, a
+        // dropdown on phones so the row can never overflow.
+        ResponsivePeriodSelector<ReportPeriodType>(
+          key: const Key('dashboard_period_selector'),
+          value: _periodType,
+          dropdownLabel: 'اختر الفترة',
+          options: const [
+            PeriodOption(ReportPeriodType.daily, 'اليوم'),
+            PeriodOption(ReportPeriodType.weekly, 'الأسبوع'),
+            PeriodOption(ReportPeriodType.monthly, 'الشهر'),
+            PeriodOption(ReportPeriodType.custom, 'فترة مخصصة'),
+          ],
+          onChanged: (value) {
+            setState(() => _periodType = value);
+            _reload();
+          },
+        ),
+        if (_periodType == ReportPeriodType.custom) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
               OutlinedButton.icon(
                 onPressed: () => _pickCustomDate(isStart: true),
                 icon: const Icon(Icons.calendar_today, size: 15),
@@ -251,8 +245,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 label: Text('إلى: ${dateKey(_customEnd)}'),
               ),
             ],
-          ],
-        ),
+          ),
+        ],
         const SizedBox(height: 18),
 
         if (_loading || report == null)
@@ -264,9 +258,9 @@ class _DashboardPageState extends State<DashboardPage> {
           // KPI Cards Grid
           LayoutBuilder(
             builder: (context, constraints) {
-              final cols = constraints.maxWidth >= 980
+              final cols = constraints.maxWidth >= 960
                   ? 4
-                  : constraints.maxWidth >= 520
+                  : constraints.maxWidth >= 460
                       ? 2
                       : 1;
               final itemWidth =
@@ -369,13 +363,9 @@ class _DashboardPageState extends State<DashboardPage> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(
+                        AmountText(
                           formatMoney(s.totalPiastres, withCurrency: true),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                          ),
+                          fontSize: 18,
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -502,42 +492,57 @@ class _OutletDashboardTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Wrap(
-                spacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    row.outletName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
+        // Name + badges first, total under them on phones: the outlet name is
+        // never squeezed into a narrow column next to the amount.
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final nameBlock = Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  row.outletName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
                   ),
-                  StatusBadge(
-                    text: row.configuredShiftCount == 2 ? 'ورديتان' : '3 ورديات',
-                    color: const Color(0xFF475569),
+                ),
+                StatusBadge(
+                  text: row.configuredShiftCount == 2 ? 'ورديتان' : '3 ورديات',
+                  color: const Color(0xFF475569),
+                ),
+                if (!row.isActive)
+                  const StatusBadge(
+                    text: 'متوقف',
+                    color: AppTheme.warningAmber,
                   ),
-                  if (!row.isActive)
-                    const StatusBadge(
-                      text: 'متوقف',
-                      color: AppTheme.warningAmber,
-                    ),
-                ],
-              ),
-            ),
-            Text(
+              ],
+            );
+            final amount = AmountText(
               formatMoney(row.totalPiastres, withCurrency: true),
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-                color: AppTheme.brandPrimary,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-          ],
+              fontSize: 16,
+              color: AppTheme.brandPrimary,
+            );
+            if (constraints.maxWidth < 340) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  nameBlock,
+                  const SizedBox(height: 2),
+                  amount,
+                ],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: nameBlock),
+                const SizedBox(width: 10),
+                amount,
+              ],
+            );
+          },
         ),
         const SizedBox(height: 6),
         Wrap(

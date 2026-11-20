@@ -8,6 +8,7 @@ import '../../models/backup_info.dart';
 import '../../models/backup_info.dart' as bi;
 import '../../state/ragaa_controller.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/responsive_layout.dart';
 
 /// Page for creating verified SQLite backups (local or external folder/USB),
 /// verifying integrity (SHA-256 + PRAGMA integrity_check), and restoring safely.
@@ -145,7 +146,7 @@ class _BackupPageState extends State<BackupPage> {
     final busy = widget.controller.isBusy;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: responsivePagePadding(context, withFabInset: true),
       children: [
         const Column(
           crossAxisAlignment: CrossAxisAlignment.start,

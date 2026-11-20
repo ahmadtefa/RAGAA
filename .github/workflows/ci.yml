@@ -113,6 +113,11 @@ jobs:
       - name: Generate real daily-journal PDF/Excel review files
         run: flutter test test/review_samples_generation_test.dart --reporter expanded
 
+      - name: Capture real UI screenshots from the Flutter widget tree
+        run: |
+          flutter test test/ui_screenshots_test.dart --reporter expanded
+          ls -la review/ui/screenshots || true
+
       - name: Publish samples back to the branch (so they can be inspected visually)
         if: github.event_name == 'push' && github.ref_name != 'main'
         continue-on-error: true
@@ -126,7 +131,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(review): regenerate daily journal PDF/Excel samples [skip ci]"
+          git commit -m "chore(review): regenerate journal samples and real UI screenshots [skip ci]"
           for attempt in 1 2 3; do
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
             if git push origin "HEAD:${GITHUB_REF_NAME}"; then

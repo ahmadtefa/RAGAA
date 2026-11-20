@@ -8,6 +8,7 @@ import '../../models/daily_journal.dart';
 import '../../models/report_models.dart';
 import '../../state/ragaa_controller.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/responsive_layout.dart';
 import '../widgets/daily_journal_preview.dart';
 
 enum _ReportSubView { outlets, shifts, days, details, journal }
@@ -216,7 +217,7 @@ class _ReportsPageState extends State<ReportsPage> {
     final outlets = widget.controller.outlets;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: responsivePagePadding(context, withFabInset: true),
       children: [
         // Header & Export Buttons
         Wrap(
@@ -296,29 +297,56 @@ class _ReportsPageState extends State<ReportsPage> {
                   runSpacing: 10,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    SegmentedButton<ReportPeriodType>(
-                      segments: const [
-                        ButtonSegment(
-                          value: ReportPeriodType.daily,
-                          label: Text('يومي'),
-                        ),
-                        ButtonSegment(
-                          value: ReportPeriodType.weekly,
-                          label: Text('أسبوعي'),
-                        ),
-                        ButtonSegment(
-                          value: ReportPeriodType.monthly,
-                          label: Text('شهري'),
-                        ),
-                        ButtonSegment(
-                          value: ReportPeriodType.custom,
-                          label: Text('فترة مخصصة'),
-                        ),
-                      ],
-                      selected: {_periodType},
-                      onSelectionChanged: (s) {
-                        setState(() => _periodType = s.first);
-                        _reload();
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth < 520) {
+                          // Phones: a dropdown can never overflow.
+                          return SizedBox(
+                            width: constraints.maxWidth,
+                            child: PeriodDropdown<ReportPeriodType>(
+                              value: _periodType,
+                              hint: 'اختر الفترة',
+                              options: const [
+                                PeriodOption(ReportPeriodType.daily, 'يومي'),
+                                PeriodOption(ReportPeriodType.weekly, 'أسبوعي'),
+                                PeriodOption(ReportPeriodType.monthly, 'شهري'),
+                                PeriodOption(
+                                  ReportPeriodType.custom,
+                                  'فترة مخصصة',
+                                ),
+                              ],
+                              onChanged: (value) {
+                                setState(() => _periodType = value);
+                                _reload();
+                              },
+                            ),
+                          );
+                        }
+                        return SegmentedButton<ReportPeriodType>(
+                          segments: const [
+                            ButtonSegment(
+                              value: ReportPeriodType.daily,
+                              label: Text('يومي'),
+                            ),
+                            ButtonSegment(
+                              value: ReportPeriodType.weekly,
+                              label: Text('أسبوعي'),
+                            ),
+                            ButtonSegment(
+                              value: ReportPeriodType.monthly,
+                              label: Text('شهري'),
+                            ),
+                            ButtonSegment(
+                              value: ReportPeriodType.custom,
+                              label: Text('فترة مخصصة'),
+                            ),
+                          ],
+                          selected: {_periodType},
+                          onSelectionChanged: (s) {
+                            setState(() => _periodType = s.first);
+                            _reload();
+                          },
+                        );
                       },
                     ),
                     _buildPeriodSpecificPicker(),
@@ -332,8 +360,8 @@ class _ReportsPageState extends State<ReportsPage> {
                   runSpacing: 10,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 190,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 240),
                       child: DropdownButtonFormField<int?>(
                         key: ValueKey('rep_shift_$_selectedShift'),
                         isExpanded: true,

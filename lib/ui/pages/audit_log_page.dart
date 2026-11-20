@@ -6,6 +6,7 @@ import '../../core/formatters.dart';
 import '../../models/audit_log_entry.dart';
 import '../../state/ragaa_controller.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/responsive_layout.dart';
 
 /// Displays the immutable audit trail of all creations, modifications,
 /// shift schedule updates, legacy migrations, and database restorations.
@@ -79,7 +80,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
     final outlets = widget.controller.outlets;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: responsivePagePadding(context, withFabInset: true),
       children: [
         const Column(
           crossAxisAlignment: CrossAxisAlignment.start,

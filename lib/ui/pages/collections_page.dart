@@ -9,6 +9,7 @@ import '../../models/collection_record.dart';
 import '../../state/ragaa_controller.dart';
 import '../widgets/collection_form_dialog.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/responsive_layout.dart';
 
 /// Page for daily collection entry, filtering, audited modification, and
 /// viewing per-record revision history.
@@ -224,7 +225,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
         _records.fold<int>(0, (sum, r) => sum + r.amountPiastres);
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: responsivePagePadding(context, withFabInset: true),
       children: [
         Wrap(
           spacing: 12,
@@ -297,8 +298,8 @@ class _CollectionsPageState extends State<CollectionsPage> {
                     _reload();
                   },
                 ),
-                SizedBox(
-                  width: 210,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 240),
                   child: DropdownButtonFormField<String?>(
                     key: ValueKey('col_outlet_filter_$_selectedOutletId'),
                     isExpanded: true,
@@ -325,8 +326,8 @@ class _CollectionsPageState extends State<CollectionsPage> {
                     },
                   ),
                 ),
-                SizedBox(
-                  width: 180,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
                   child: DropdownButtonFormField<int?>(
                     key: ValueKey('col_shift_filter_$_selectedShift'),
                     isExpanded: true,
@@ -363,26 +364,27 @@ class _CollectionsPageState extends State<CollectionsPage> {
               color: AppTheme.brandPrimary.withValues(alpha: 0.2),
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'عدد السجلات المعروضة: ${_records.length}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
+          child: LayoutBuilder(
+            builder: (context, constraints) => Wrap(
+              spacing: 16,
+              runSpacing: 6,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'عدد السجلات المعروضة: ${_records.length}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-              Text(
-                'الإجمالي: ${formatMoney(totalPiastres, withCurrency: true)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
+                AmountText(
+                  'الإجمالي: ${formatMoney(totalPiastres, withCurrency: true)}',
                   fontSize: 16,
                   color: AppTheme.brandPrimary,
-                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -418,91 +420,113 @@ class _CollectionsPageState extends State<CollectionsPage> {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // The record data keeps the full width; the amount and the
+                      // two action buttons move to their own row on phones so the
+                      // outlet name and shift are never squeezed.
+                      final data = Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                rec.outletName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              StatusBadge(
+                                text: rec.shiftTitle,
+                                color: AppTheme.brandPrimary,
+                              ),
+                              if (rec.wasModified)
+                                StatusBadge(
+                                  text: 'معدّل (${rec.revision})',
+                                  color: AppTheme.warningAmber,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'التاريخ التشغيلي: ${rec.operationalDate}'
+                            '${rec.shiftScheduleDisplay.isNotEmpty ? " | الموعد: ${rec.shiftScheduleDisplay}" : ""}'
+                            '${rec.notes.isNotEmpty ? " | ${rec.notes}" : ""}',
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              _amountChip('يدوي', rec.manualFeesPiastres),
+                              _amountChip('آلي', rec.automaticFeesPiastres),
+                              _amountChip('إجمالي الرسوم', rec.totalFeesPiastres),
+                              _amountChip(
+                                'الموازين',
+                                rec.scalesTotalPiastres,
+                                emphasised: true,
+                              ),
+                              _amountChip('NFC', rec.nfcPiastres),
+                              _amountChip('VISA', rec.visaPiastres),
+                              _amountChip(
+                                'الإجمالي',
+                                rec.generalTotalPiastres,
+                                emphasised: true,
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                      final amount = AmountText(
+                        formatMoney(rec.amountPiastres, withCurrency: true),
+                        fontSize: 16.5,
+                      );
+                      final actions = <Widget>[
+                        IconButton(
+                          tooltip: 'تعديل المبلغ (مع سجل مراجعة)',
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                          onPressed: () => _editCollection(rec),
+                        ),
+                        IconButton(
+                          tooltip: 'عرض سجل مراجعة الوردية',
+                          icon: const Icon(Icons.history, size: 20),
+                          onPressed: () => _showRecordAuditHistory(rec),
+                        ),
+                      ];
+                      if (constraints.maxWidth < 520) {
+                        return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Wrap(
-                              spacing: 8,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(
-                                  rec.outletName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                StatusBadge(
-                                  text: rec.shiftTitle,
-                                  color: AppTheme.brandPrimary,
-                                ),
-                                if (rec.wasModified)
-                                  StatusBadge(
-                                    text: 'معدّل (${rec.revision})',
-                                    color: AppTheme.warningAmber,
-                                  ),
-                              ],
-                            ),
+                            data,
                             const SizedBox(height: 4),
-                            Text(
-                              'التاريخ التشغيلي: ${rec.operationalDate}'
-                              '${rec.shiftScheduleDisplay.isNotEmpty ? " | الموعد: ${rec.shiftScheduleDisplay}" : ""}'
-                              '${rec.notes.isNotEmpty ? " | ${rec.notes}" : ""}',
-                              style: const TextStyle(
-                                fontSize: 12.5,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
+                            Row(
                               children: [
-                                _amountChip('يدوي', rec.manualFeesPiastres),
-                                _amountChip('آلي', rec.automaticFeesPiastres),
-                                _amountChip('إجمالي الرسوم', rec.totalFeesPiastres),
-                                _amountChip(
-                                  'الموازين',
-                                  rec.scalesTotalPiastres,
-                                  emphasised: true,
-                                ),
-                                _amountChip('NFC', rec.nfcPiastres),
-                                _amountChip('VISA', rec.visaPiastres),
-                                _amountChip(
-                                  'الإجمالي',
-                                  rec.generalTotalPiastres,
-                                  emphasised: true,
-                                ),
+                                Expanded(child: amount),
+                                ...actions,
                               ],
                             ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        formatMoney(rec.amountPiastres, withCurrency: true),
-                        style: const TextStyle(
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF0F172A),
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        tooltip: 'تعديل المبلغ (مع سجل مراجعة)',
-                        icon: const Icon(Icons.edit_outlined, size: 20),
-                        onPressed: () => _editCollection(rec),
-                      ),
-                      IconButton(
-                        tooltip: 'عرض سجل مراجعة الوردية',
-                        icon: const Icon(Icons.history, size: 20),
-                        onPressed: () => _showRecordAuditHistory(rec),
-                      ),
-                    ],
+                        );
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: data),
+                          const SizedBox(width: 12),
+                          amount,
+                          const SizedBox(width: 8),
+                          ...actions,
+                        ],
+                      );
+                    },
                   ),
                 );
               },
