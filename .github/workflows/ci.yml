@@ -1,4 +1,4 @@
-name: RAGAA Flutter CI & Desktop Builds
+name: RAGAA CI — Analyze, Test, Windows Setup & Android APK
 
 on:
   push:
@@ -10,6 +10,12 @@ on:
 concurrency:
   group: ragaa-ci-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_CHANNEL: stable
 
 jobs:
   analyze-and-test:
@@ -27,29 +33,122 @@ jobs:
       - name: Setup Flutter (stable)
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
+
+      - name: Flutter version
+        run: flutter --version
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Run static analysis
-        run: flutter analyze
+        run: |
+          mkdir -p review/ci
+          set -o pipefail
+          flutter analyze 2>&1 | tee review/ci/analyze.log
 
       - name: Run automated Flutter tests
-        run: flutter test --reporter expanded --coverage
+        if: always()
+        run: |
+          mkdir -p review/ci
+          set -o pipefail
+          flutter test --reporter expanded --coverage 2>&1 | tee review/ci/test.log
 
-      - name: Upload test coverage
+      # Publishes the analyzer/test output back to the branch so the results can
+      # be inspected without access to the Actions log endpoints.
+      - name: Publish analyzer & test logs to the branch
+        if: always() && github.event_name == 'push' && github.ref_name != 'main'
+        continue-on-error: true
+        run: |
+          if [ -z "$(git status --porcelain review/ci)" ]; then
+            echo "No log changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f review/ci
+          git commit -m "chore(ci): analyzer and test logs [skip ci]"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Logs published on attempt ${attempt}."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Could not publish logs (branch moved); CI logs remain in the Actions run."
+
+      - name: Upload test results & coverage
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-coverage-lcov
           path: coverage/lcov.info
           retention-days: 14
+          if-no-files-found: warn
 
-  build-windows:
-    name: Build Windows Preview (x64)
+  review-samples:
+    name: Generate review PDF & Excel samples
+    runs-on: ubuntu-latest
     needs: analyze-and-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install SQLite development library
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsqlite3-dev sqlite3
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate real daily-journal PDF/Excel review files
+        run: flutter test test/review_samples_generation_test.dart --reporter expanded
+
+      - name: Publish samples back to the branch (so they can be inspected visually)
+        if: github.event_name == 'push' && github.ref_name != 'main'
+        continue-on-error: true
+        run: |
+          git add review pubspec.lock
+          # Flutter refreshes the tracked desktop plugin registrations at pub get.
+          git ls-files -z -- windows/flutter linux/flutter macos/Flutter | xargs -0 -r git add -u --
+          if git diff --cached --quiet; then
+            echo "No review sample changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(review): regenerate daily journal PDF/Excel samples [skip ci]"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Review samples published on attempt ${attempt}."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Could not publish review samples; they are in the workflow artifact instead."
+
+      - name: Upload review samples artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RAGAA-review-samples
+          path: review/
+          retention-days: 30
+          if-no-files-found: warn
+
+  build-windows-setup:
+    name: Build Windows Release + RAGAA-Setup.exe
     runs-on: windows-latest
+    needs: analyze-and-test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -57,8 +156,11 @@ jobs:
       - name: Setup Flutter (stable)
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
+
+      - name: Flutter version
+        run: flutter --version
 
       - name: Enable Windows desktop & get dependencies
         run: |
@@ -70,40 +172,115 @@ jobs:
           JAVA_HOME: ""
         run: flutter build windows --release
 
-      - name: Verify bundled executable and SQLite DLL & package ZIP
+      - name: Add usage notes & verify release bundle
         shell: pwsh
         run: |
           $releaseDir = "build/windows/x64/runner/Release"
-          if (!(Test-Path "$releaseDir/ragaa.exe")) {
-            throw "ragaa.exe was not generated!"
-          }
-          if (!(Test-Path "$releaseDir/sqlite3.dll")) {
-            throw "sqlite3.dll was not bundled!"
-          }
-          $readmeContent = @"
-          RAGAA — نظام إدارة تحصيل المنافذ (نسخة Windows التجريبية)
-          =========================================================
-          طريقة التشغيل:
-          1. فك الضغط عن كامل المجلد في مكان ثابت على الجهاز (مثل D:\RAGAA).
-          2. شغّل الملف ragaa.exe مباشرة (لا تنقل ragaa.exe بمفرده خارج المجلد).
-          3. تُحفظ قاعدة البيانات SQLite تلقائيًا في مجلد بيانات التطبيق الآمن على Windows،
-             وتُحفظ النسخ الاحتياطية والتقارير المصدّرة (PDF / Excel) داخل Documents\RAGAA.
-          "@
-          Set-Content -Path "$releaseDir/README_AR.txt" -Value $readmeContent -Encoding UTF8
-          New-Item -ItemType Directory -Force -Path "artifacts" | Out-Null
-          Compress-Archive -Path "$releaseDir/*" -DestinationPath "artifacts/RAGAA-Windows-x64-Preview.zip" -Force
+          if (!(Test-Path "$releaseDir/ragaa.exe")) { throw "ragaa.exe was not generated!" }
+          if (!(Test-Path "$releaseDir/sqlite3.dll")) { throw "sqlite3.dll was not bundled!" }
+          Get-ChildItem $releaseDir | Select-Object Name, Length | Format-Table -AutoSize
+          Copy-Item "review/README-Windows.txt" "$releaseDir/README-Windows.txt" -ErrorAction SilentlyContinue
 
-      - name: Upload Windows Preview build artifact
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Compile RAGAA-Setup.exe
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) { throw "ISCC.exe not found at $iscc" }
+          & $iscc "installer\ragaa.iss"
+          if (!(Test-Path "artifacts/RAGAA-Setup.exe")) { throw "RAGAA-Setup.exe was not produced!" }
+          Get-Item "artifacts/RAGAA-Setup.exe" | Select-Object FullName, Length
+
+      - name: Package portable Windows folder (ZIP)
+        shell: pwsh
+        run: |
+          $releaseDir = "build/windows/x64/runner/Release"
+          New-Item -ItemType Directory -Force -Path "artifacts" | Out-Null
+          Compress-Archive -Path "$releaseDir/*" -DestinationPath "artifacts/RAGAA-Windows-x64-Portable.zip" -Force
+
+      - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RAGAA-Windows-x64-Preview
-          path: artifacts/RAGAA-Windows-x64-Preview.zip
+          name: RAGAA-Windows-Setup
+          path: artifacts/RAGAA-Setup.exe
           retention-days: 30
 
-  build-linux:
-    name: Build Linux Preview (x64)
-    needs: analyze-and-test
+      - name: Upload Windows portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RAGAA-Windows-x64-Portable
+          path: artifacts/RAGAA-Windows-x64-Portable.zip
+          retention-days: 30
+
+  build-android-apk:
+    name: Build Android Release APK
     runs-on: ubuntu-latest
+    needs: analyze-and-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java (Temurin 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Configure optional release keystore (from repository secrets)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "No release keystore secret configured -> release APK is signed with the debug key (installable)."
+            exit 0
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release.jks
+          cat > android/key.properties <<EOF
+          storePassword=${ANDROID_STORE_PASSWORD}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          storeFile=release.jks
+          EOF
+          echo "Release keystore configured."
+
+      - name: Build release APK
+        run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
+
+      - name: Rename APK & show details
+        run: |
+          mkdir -p artifacts
+          cp build/app/outputs/flutter-apk/app-release.apk artifacts/RAGAA-release.apk
+          ls -lh artifacts/RAGAA-release.apk
+          sha256sum artifacts/RAGAA-release.apk | tee artifacts/RAGAA-release.apk.sha256
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RAGAA-Android-APK
+          path: artifacts/RAGAA-release.apk*
+          retention-days: 30
+
+  build-linux-preview:
+    name: Build Linux Preview (x64)
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -116,7 +293,7 @@ jobs:
       - name: Setup Flutter (stable)
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
       - name: Enable Linux desktop & get dependencies

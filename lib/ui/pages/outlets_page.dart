@@ -95,8 +95,12 @@ class OutletsPage extends StatelessWidget {
             ),
           )
         else
-          ...outlets.map(
-            (outlet) => Padding(
+          ...outlets.asMap().entries.map(
+            (entry) {
+              final index = entry.key;
+              final outlet = entry.value;
+              return Padding(
+              key: ValueKey('outlet_card_${outlet.id}'),
               padding: const EdgeInsets.only(bottom: 12),
               child: Card(
                 child: Padding(
@@ -160,6 +164,28 @@ class OutletsPage extends StatelessWidget {
                                 ],
                               ],
                             ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                key: Key('outlet_move_up_${outlet.id}'),
+                                tooltip: 'تحريك المنفذ لأعلى (ترتيب الطباعة)',
+                                onPressed: index == 0
+                                    ? null
+                                    : () => controller.moveOutlet(outlet.id, -1),
+                                icon: const Icon(Icons.arrow_upward, size: 18),
+                              ),
+                              IconButton(
+                                key: Key('outlet_move_down_${outlet.id}'),
+                                tooltip: 'تحريك المنفذ لأسفل (ترتيب الطباعة)',
+                                onPressed: index == outlets.length - 1
+                                    ? null
+                                    : () => controller.moveOutlet(outlet.id, 1),
+                                icon:
+                                    const Icon(Icons.arrow_downward, size: 18),
+                              ),
+                            ],
                           ),
                           OutlinedButton.icon(
                             key: Key('edit_outlet_${outlet.id}'),
@@ -229,7 +255,8 @@ class OutletsPage extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
+            );
+            },
           ),
       ],
     );

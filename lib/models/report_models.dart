@@ -1,6 +1,7 @@
 import '../core/date_ranges.dart';
 import '../core/formatters.dart';
 import 'collection_record.dart';
+import 'outlet.dart';
 
 /// Filter parameters for report generation and dashboard aggregation.
 class ReportFilter {
@@ -152,6 +153,11 @@ class ReportData {
   final List<DailyReportRow> byDay;
   final List<CollectionRecord> details;
 
+  /// All outlets in the user-defined printable order (`sort_order`), including
+  /// inactive ones that still own historical records. The daily journal uses
+  /// this order so printed rows always match the paper form.
+  final List<Outlet> outlets;
+
   const ReportData({
     required this.filter,
     required this.generatedAt,
@@ -164,6 +170,7 @@ class ReportData {
     required this.byShift,
     required this.byDay,
     required this.details,
+    this.outlets = const [],
   });
 
   int get dailyAveragePiastres =>

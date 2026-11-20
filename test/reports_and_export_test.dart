@@ -11,6 +11,16 @@ import 'package:ragaa/services/excel_export_service.dart';
 import 'package:ragaa/services/pdf_export_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+/// Reads any numeric Excel cell (integers are decoded as `IntCellValue`).
+double moneyAt(Sheet sheet, int column, int row) {
+  final value = sheet
+      .cell(CellIndex.indexByColumnRow(columnIndex: column, rowIndex: row))
+      .value;
+  if (value is DoubleCellValue) return value.value;
+  if (value is IntCellValue) return value.value.toDouble();
+  fail('cell (row $row, column $column) is not numeric: $value');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -187,8 +197,12 @@ void main() {
         ExcelExportService.shiftsSheetName,
         ExcelExportService.dailySheetName,
         ExcelExportService.detailsSheetName,
-        ExcelExportService.dailyJournalSheetName,
       ]),
+    );
+    // The paper-form journal sheet belongs to single-day journals only.
+    expect(
+      decoded.tables.keys,
+      isNot(contains(ExcelExportService.dailyJournalSheetName)),
     );
 
     // Every sheet must be RTL.
@@ -210,9 +224,28 @@ void main() {
 
     // Verify details sheet has header + 4 collection rows + totals row.
     final detailsSheet = decoded.tables[ExcelExportService.detailsSheetName]!;
-    final detailsTotal = detailsSheet
-        .cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 7))
+    // The money totals row is made of real SUM formulas over the data rows.
+    final generalTotalCell = detailsSheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: 7))
         .value;
-    expect((detailsTotal as DoubleCellValue).value, closeTo(8751.25, 0.0001));
+    expect(generalTotalCell, isA<FormulaCellValue>());
+    expect(
+      (generalTotalCell as FormulaCellValue).formula,
+      'SUM(M4:M7)',
+    );
+    // The same column, summed numerically by hand, must equal the approved
+    // grand total so nothing is double counted between the two exports.
+    var generalSum = 0.0;
+    for (var row = 3; row < 7; row++) {
+      generalSum += moneyAt(detailsSheet, 12, row);
+    }
+    expect(generalSum, closeTo(8751.25, 0.0001));
+
+    // The scales column is a real formula (الإجمالي العام − إجمالي الرسوم).
+    final scalesCell = detailsSheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: 3))
+        .value;
+    expect(scalesCell, isA<FormulaCellValue>());
+    expect((scalesCell as FormulaCellValue).formula, 'M4-I4');
   });
 }

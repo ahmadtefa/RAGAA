@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/date_ranges.dart';
 import '../../core/formatters.dart';
+import '../../models/daily_journal.dart';
 import '../../models/report_models.dart';
 import '../../state/ragaa_controller.dart';
 import '../widgets/common_widgets.dart';
+import '../widgets/daily_journal_preview.dart';
 
-enum _ReportSubView { outlets, shifts, days, details }
+enum _ReportSubView { outlets, shifts, days, details, journal }
 
 /// Comprehensive reporting page supporting Daily, Weekly, Monthly, and Custom
 /// periods, multi-outlet and shift filters, and Arabic RTL PDF & Excel (.xlsx) export.
@@ -37,6 +39,10 @@ class _ReportsPageState extends State<ReportsPage> {
   _ReportSubView _subView = _ReportSubView.outlets;
 
   ReportData? _report;
+  DailyJournal? _journal;
+  bool _journalLoading = false;
+  int _reportRequest = 0;
+  int _journalRequest = 0;
   bool _loading = true;
   String? _lastExportedPath;
   String? _lastExportLabel;
@@ -78,18 +84,27 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Future<void> _reload() async {
     _lastSeenRevision = widget.controller.dataRevision;
-    setState(() => _loading = true);
+    final request = ++_reportRequest;
+    ++_journalRequest;
+    setState(() {
+      _loading = true;
+      _journal = null;
+      _journalLoading = false;
+    });
     final filter = ReportFilter(
       range: _computeRange(),
       outletIds: Set.unmodifiable(_selectedOutletIds),
       shiftNumber: _selectedShift,
     );
     final data = await widget.controller.buildReport(filter);
-    if (mounted) {
+    if (mounted && request == _reportRequest) {
       setState(() {
         _report = data;
         _loading = false;
       });
+      if (_subView == _ReportSubView.journal) {
+        await _loadJournal();
+      }
     }
   }
 
@@ -130,6 +145,67 @@ class _ReportsPageState extends State<ReportsPage> {
           SnackBar(content: Text('فشل تصدير Excel: $e')),
         );
       }
+    }
+  }
+
+  /// Builds the electronic daily journal for the first day of the selected
+  /// period (the paper journal is always a single operational day).
+  Future<void> _loadJournal() async {
+    final request = ++_journalRequest;
+    setState(() => _journalLoading = true);
+    final journal = await _journalOrNull();
+    if (mounted && request == _journalRequest) {
+      setState(() {
+        _journal = journal;
+        _journalLoading = false;
+      });
+    }
+  }
+
+  Future<void> _exportJournal({required bool asPdf}) async {
+    final journal = await _journalOrNull();
+    if (journal == null) return;
+    try {
+      final path = await widget.controller.quickExportJournal(
+        journal,
+        asPdf: asPdf,
+      );
+      if (!mounted) return;
+      setState(() {
+        _lastExportedPath = path;
+        _lastExportLabel = asPdf
+            ? 'تم تصدير اليومية PDF بنجاح:'
+            : 'تم تصدير اليومية Excel (.xlsx) بنجاح:';
+      });
+      final shared = await widget.controller.shareFile(path);
+      if (!mounted) return;
+      if (!shared) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تم حفظ اليومية في: $path')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل تصدير اليومية: $e')),
+        );
+      }
+    }
+  }
+
+  Future<DailyJournal?> _journalOrNull() async {
+    try {
+      return await widget.controller.buildDailyJournal(
+        _computeRange().start,
+        outletIds: Set.unmodifiable(_selectedOutletIds),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تعذر بناء اليومية: $e')),
+        );
+      }
+      return null;
     }
   }
 
@@ -178,6 +254,18 @@ class _ReportsPageState extends State<ReportsPage> {
                   icon: const Icon(Icons.table_view, size: 18),
                   label: const Text('تصدير Excel (.xlsx)'),
                 ),
+                FilledButton.tonalIcon(
+                  key: const Key('export_journal_pdf_button'),
+                  onPressed: busy ? null : () => _exportJournal(asPdf: true),
+                  icon: const Icon(Icons.description_outlined, size: 18),
+                  label: const Text('اليومية PDF'),
+                ),
+                FilledButton.tonalIcon(
+                  key: const Key('export_journal_excel_button'),
+                  onPressed: busy ? null : () => _exportJournal(asPdf: false),
+                  icon: const Icon(Icons.grid_on_outlined, size: 18),
+                  label: const Text('اليومية Excel'),
+                ),
               ],
             ),
           ],
@@ -187,6 +275,7 @@ class _ReportsPageState extends State<ReportsPage> {
           SavedFileBanner(
             label: _lastExportLabel ?? 'تم حفظ الملف:',
             filePath: _lastExportedPath!,
+            onShare: () => widget.controller.shareFile(_lastExportedPath!),
             onDismiss: () => setState(() => _lastExportedPath = null),
           ),
         ],
@@ -361,28 +450,40 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
           const SizedBox(height: 16),
 
-          // Sub-view Switcher
-          SegmentedButton<_ReportSubView>(
-            segments: const [
-              ButtonSegment(
-                value: _ReportSubView.outlets,
-                label: Text('حسب المنفذ'),
-              ),
-              ButtonSegment(
-                value: _ReportSubView.shifts,
-                label: Text('حسب الوردية'),
-              ),
-              ButtonSegment(
-                value: _ReportSubView.days,
-                label: Text('حسب اليوم'),
-              ),
-              ButtonSegment(
-                value: _ReportSubView.details,
-                label: Text('التفاصيل'),
-              ),
-            ],
-            selected: {_subView},
-            onSelectionChanged: (s) => setState(() => _subView = s.first),
+          // Sub-view Switcher (horizontally scrollable on narrow phones)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SegmentedButton<_ReportSubView>(
+              segments: const [
+                ButtonSegment(
+                  value: _ReportSubView.outlets,
+                  label: Text('حسب المنفذ'),
+                ),
+                ButtonSegment(
+                  value: _ReportSubView.shifts,
+                  label: Text('حسب الوردية'),
+                ),
+                ButtonSegment(
+                  value: _ReportSubView.days,
+                  label: Text('حسب اليوم'),
+                ),
+                ButtonSegment(
+                  value: _ReportSubView.details,
+                  label: Text('التفاصيل'),
+                ),
+                ButtonSegment(
+                  value: _ReportSubView.journal,
+                  label: Text('اليومية'),
+                ),
+              ],
+              selected: {_subView},
+              onSelectionChanged: (s) {
+                setState(() => _subView = s.first);
+                if (s.first == _ReportSubView.journal) {
+                  _loadJournal();
+                }
+              },
+            ),
           ),
           const SizedBox(height: 14),
 
@@ -607,6 +708,39 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildActiveSubView(ReportData report) {
     switch (_subView) {
+      case _ReportSubView.journal:
+        if (_journalLoading && _journal == null) {
+          return const Padding(
+            padding: EdgeInsets.all(40),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final journal = _journal;
+        if (journal == null) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const Text(
+                    'اضغط لعرض يومية اليوم المحدد بالتصميم الورقي الكامل',
+                  ),
+                  const SizedBox(height: 10),
+                  FilledButton.icon(
+                    key: const Key('load_journal_button'),
+                    onPressed: _loadJournal,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('عرض اليومية'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return SizedBox(
+          height: 520,
+          child: DailyJournalPreview(journal: journal),
+        );
       case _ReportSubView.outlets:
         if (report.byOutlet.isEmpty) {
           return const EmptyStateBox(

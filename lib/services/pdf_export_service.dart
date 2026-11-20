@@ -429,7 +429,13 @@ class PdfExportService {
                 'المنفذ',
                 'الوردية',
                 'الموعد',
-                'المبلغ (ج.م)',
+                'يدوي',
+                'آلي',
+                'إجمالي الرسوم',
+                'الموازين',
+                'NFC',
+                'VISA',
+                'الإجمالي العام',
                 'الحالة',
                 'ملاحظات',
               ],
@@ -442,7 +448,13 @@ class PdfExportService {
                     c.shiftScheduleDisplay.isEmpty
                         ? '-'
                         : c.shiftScheduleDisplay,
-                    formatMoney(c.amountPiastres),
+                    formatMoney(c.manualFeesPiastres),
+                    formatMoney(c.automaticFeesPiastres),
+                    formatMoney(c.totalFeesPiastres),
+                    formatMoney(c.scalesTotalPiastres),
+                    formatMoney(c.nfcPiastres),
+                    formatMoney(c.visaPiastres),
+                    formatMoney(c.generalTotalPiastres),
                     c.wasModified ? 'معدّل (${c.revision})' : 'أصلي',
                     c.notes.isEmpty ? '-' : c.notes,
                   ],
@@ -452,6 +464,18 @@ class PdfExportService {
                 '',
                 '',
                 '${report.totalEntries} سجل',
+                formatMoney(report.details
+                    .fold(0, (sum, c) => sum + c.manualFeesPiastres)),
+                formatMoney(report.details
+                    .fold(0, (sum, c) => sum + c.automaticFeesPiastres)),
+                formatMoney(report.details
+                    .fold(0, (sum, c) => sum + c.totalFeesPiastres)),
+                formatMoney(report.details
+                    .fold(0, (sum, c) => sum + c.scalesTotalPiastres)),
+                formatMoney(report.details
+                    .fold(0, (sum, c) => sum + c.nfcPiastres)),
+                formatMoney(report.details
+                    .fold(0, (sum, c) => sum + c.visaPiastres)),
                 formatMoney(report.grandTotalPiastres),
                 '',
                 '',

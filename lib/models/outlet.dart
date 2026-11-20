@@ -9,6 +9,9 @@ class Outlet {
   final String notes;
   final String createdAt;
   final String updatedAt;
+
+  /// Position used for printing/reporting order (lower first).
+  final int sortOrder;
   final List<OutletShift> shifts;
 
   const Outlet({
@@ -20,6 +23,7 @@ class Outlet {
     required this.createdAt,
     required this.updatedAt,
     required this.shifts,
+    this.sortOrder = 0,
   });
 
   /// Shifts currently active for new collection recording (1..shiftCount).
@@ -43,6 +47,7 @@ class Outlet {
         'shift_count': shiftCount,
         'is_active': isActive,
         'notes': notes,
+        'sort_order': sortOrder,
         'shifts': shifts
             .map(
               (s) => {
@@ -70,6 +75,7 @@ class Outlet {
       notes: (row['notes'] as String?) ?? '',
       createdAt: row['created_at'] as String,
       updatedAt: row['updated_at'] as String,
+      sortOrder: (row['sort_order'] as int?) ?? 0,
       shifts: List.unmodifiable(sorted),
     );
   }

@@ -226,11 +226,15 @@ class SavedFileBanner extends StatelessWidget {
   final String filePath;
   final VoidCallback onDismiss;
 
+  /// Mobile (Android/iOS) share-sheet action; hidden when `null`.
+  final Future<bool> Function()? onShare;
+
   const SavedFileBanner({
     super.key,
     required this.label,
     required this.filePath,
     required this.onDismiss,
+    this.onShare,
   });
 
   @override
@@ -268,6 +272,12 @@ class SavedFileBanner extends StatelessWidget {
               ],
             ),
           ),
+          if (onShare != null)
+            TextButton.icon(
+              onPressed: () => onShare!(),
+              icon: const Icon(Icons.share, size: 16),
+              label: const Text('مشاركة'),
+            ),
           TextButton.icon(
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: filePath));

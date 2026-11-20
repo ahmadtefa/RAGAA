@@ -7,7 +7,12 @@ import 'package:sqflite/sqflite.dart';
 import 'database_factory_init.dart';
 
 /// Current SQLite schema version.
-const int kDatabaseSchemaVersion = 2;
+///
+/// v1: initial schema (outlets, shifts, collections, audit log).
+/// v2: daily-journal financial columns (manual/automatic/total fees, general
+///     total, NFC, VISA) added non-destructively.
+/// v3: printable outlet order (`outlets.sort_order`).
+const int kDatabaseSchemaVersion = 3;
 
 /// Required tables checked during backup verification.
 const List<String> kRequiredDatabaseTables = [
@@ -56,18 +61,32 @@ class AppDatabase {
     return instance;
   }
 
+  /// Resolves the folder that holds user-visible RAGAA files.
+  ///
+  /// On Android this is the app-specific external files directory
+  /// (`Android/data/<package>/files/RAGAA`), which needs no runtime permission on
+  /// Android 10+ and is what the share sheet exposes to the user. On desktop it
+  /// remains the user's Documents folder.
+  static Future<Directory> _resolveUserFilesRoot() async {
+    if (Platform.isAndroid) {
+      final external = await getExternalStorageDirectory();
+      if (external != null) return external;
+    }
+    return getApplicationDocumentsDirectory();
+  }
+
   /// Resolves the default directory for local automated/manual backups.
   static Future<String> resolveDefaultBackupsDirectory() async {
-    final docs = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(docs.path, 'RAGAA', 'backups'));
+    final root = await _resolveUserFilesRoot();
+    final dir = Directory(p.join(root.path, 'RAGAA', 'backups'));
     await dir.create(recursive: true);
     return dir.path;
   }
 
   /// Resolves the default directory for exported PDF and Excel reports.
   static Future<String> resolveDefaultExportsDirectory() async {
-    final docs = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(docs.path, 'RAGAA', 'exports'));
+    final root = await _resolveUserFilesRoot();
+    final dir = Directory(p.join(root.path, 'RAGAA', 'exports'));
     await dir.create(recursive: true);
     return dir.path;
   }
@@ -101,14 +120,18 @@ class AppDatabase {
         },
         onCreate: (db, version) async {
           await _createSchemaV1(db);
+          await _migrateToV3(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
-          // Reserved for forward-only non-destructive schema migrations.
+          // Forward-only, strictly non-destructive migrations.
           if (oldVersion < 1) {
             await _createSchemaV1(db);
           }
           if (oldVersion < 2) {
             await _migrateToV2(db);
+          }
+          if (oldVersion < 3) {
+            await _migrateToV3(db);
           }
         },
       ),
@@ -262,6 +285,37 @@ class AppDatabase {
           'ALTER TABLE collections ADD COLUMN visa_piastres INTEGER NOT NULL DEFAULT 0');
       await txn.execute(
           'UPDATE collections SET general_total_piastres = amount_piastres');
+    });
+  }
+
+  /// Adds the printable outlet order without touching any existing row.
+  ///
+  /// Existing outlets keep their historical creation order by default so that
+  /// already printed reports stay reproducible.
+  static Future<void> _migrateToV3(Database db) async {
+    await db.transaction((txn) async {
+      final columns = await txn.rawQuery('PRAGMA table_info(outlets)');
+      final hasSortOrder =
+          columns.any((column) => column['name'] == 'sort_order');
+      if (!hasSortOrder) {
+        await txn.execute(
+            'ALTER TABLE outlets ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0');
+      }
+      final rows = await txn.query(
+        'outlets',
+        columns: ['id', 'sort_order'],
+        orderBy: 'created_at ASC, id ASC',
+      );
+      for (var index = 0; index < rows.length; index++) {
+        final row = rows[index];
+        if ((row['sort_order'] as int?) == index) continue;
+        await txn.update(
+          'outlets',
+          {'sort_order': index},
+          where: 'id = ?',
+          whereArgs: [row['id']],
+        );
+      }
     });
   }
 
