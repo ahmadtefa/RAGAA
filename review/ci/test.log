@@ -1,32 +1,332 @@
-00:00 +0: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart
-00:00 +0: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
-00:00 +1: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
-00:00 +2: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
+Resolving dependencies...
+Downloading packages...
+  archive 3.6.1 (4.7.1 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  equatable 2.1.0 (3.0.0 available)
+  flutter_file_dialog 3.0.3 (3.3.6 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  image 4.3.0 (4.13.1 available)
+  jni 1.1.2 (1.2.1 available)
+  jni_flutter 1.0.4+1 (1.1.0 available)
+  lints 5.1.1 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  pdf 3.12.0 (3.13.1 available)
+  printing 5.14.3 (5.15.1 available)
+  qr 3.0.3 (4.0.1 available)
+  share_plus 10.1.4 (13.3.1 available)
+  share_plus_platform_interface 5.0.2 (7.2.0 available)
+  sqflite_common_ffi 2.3.7+1 (2.4.7 available)
+  sqlite3 2.9.4 (3.9.1 available)
+  sqlite3_flutter_libs 0.5.42 (0.6.0+eol available)
+  test_api 0.7.14 (0.7.15 available)
+  vector_math 2.4.3 (2.4.4 available)
+  win32 5.15.0 (6.4.0 available)
+  xml 6.6.1 (7.1.0 available)
+Got dependencies!
+22 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/runner/work/RAGAA/RAGAA/test/widget_test.dart
+00:00 +0: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules scales total = general total − total fees (official example)
+00:00 +1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules scales total = general total − total fees (official example)
+00:00 +2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:00 +3: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:00 +4: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:00 +5: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:00 +6: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:00 +7: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:00 +8: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:00 +9: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:02 +10: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:02 +11: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:04 +12: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:04 +13: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:05 +14: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
+00:05 +15: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values
+00:06 +16: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
+00:07 +17: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
+00:07 +18: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
+00:07 +19: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
+00:07 +20: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
+00:07 +21: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
+00:07 +22: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates verified backups, rejects corrupted files, and restores safely with safety snapshot
+00:07 +23: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: multi-day reports keep all sheets and skip the single-day journal
+00:07 +24: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: journal PDFs span multiple pages without losing the header
+00:07 +25: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the general report PDF still renders for the same dataset
+00:08 +26: loading /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart
+00:08 +26: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a legacy v1 database to the current schema without data loss
+00:08 +27: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a v2 database (daily-journal fields) and keeps outlet order
+00:08 +28: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart
+00:09 +28: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
 review samples: 8 outlets, 18 recorded shifts, grand total 8190000 piastres
-00:01 +3: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
-00:01 +4: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
-00:06 +5: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: validates operational dates, shift times, and Arabic/Latin money
-00:06 +6: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:07 +7: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:07 +8: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:07 +9: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +10: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +11: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:09 +12: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:09 +13: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:10 +14: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:10 +15: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:10 +16: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:10 +17: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:11 +18: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:11 +19: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:11 +20: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:11 +21: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:11 +22: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
-00:12 +23: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates outlets with 2 or 3 independent shifts and custom schedules
-00:13 +24: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: stores independent daily journal fields and derives scales without double counting payments
-00:13 +25: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: updating shift count (3 -> 2 -> 3) and shift times preserves all historical data
-00:13 +26: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: strictly prevents duplicate collection and logs all edits in audit_logs
-00:13 +27: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: migrates legacy Phase 1 SharedPreferences data into SQLite once
-00:13 +28: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates verified backups, rejects corrupted files, and restores safely with safety snapshot
-00:14 +29: All tests passed!
+00:10 +29: /home/runner/work/RAGAA/RAGAA/test/ui_screenshots_test.dart: captures the real UI at phone, tablet and desktop sizes
+Screenshot written: review/ui/screenshots/01_phone_dashboard_412.png
+Screenshot written: review/ui/screenshots/02_phone_dashboard_360_text150.png
+Screenshot written: review/ui/screenshots/03_phone_collections_412.png
+Screenshot written: review/ui/screenshots/04_phone_outlets_320_text200.png
+00:13 +29: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 33 pixels on the right.
+
+The relevant error-causing widget was:
+  Row Row:file:///home/runner/work/RAGAA/RAGAA/lib/ui/pages/dashboard_page.dart:349:25
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#1f000 relayoutBoundary=up19 OVERFLOWING:
+  creator: Row ← Column ← Padding ← DecoratedBox ← Container ← Padding ← Column ← LayoutBuilder ←
+    Column ← Padding ← Semantics ← DefaultTextStyle ← ⋯
+  parentData: offset=Offset(0.0, 0.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(0.0<=w<=230.0, 0.0<=h<=Infinity)
+  size: Size(230.0, 25.0)
+  direction: horizontal
+  mainAxisAlignment: spaceBetween
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: rtl
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 47 pixels on the right.
+
+The relevant error-causing widget was:
+  Row Row:file:///home/runner/work/RAGAA/RAGAA/lib/ui/pages/dashboard_page.dart:349:25
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#31dee relayoutBoundary=up19 OVERFLOWING:
+  creator: Row ← Column ← Padding ← DecoratedBox ← Container ← Padding ← Column ← LayoutBuilder ←
+    Column ← Padding ← Semantics ← DefaultTextStyle ← ⋯
+  parentData: offset=Offset(0.0, 0.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(0.0<=w<=230.0, 0.0<=h<=Infinity)
+  size: Size(230.0, 25.0)
+  direction: horizontal
+  mainAxisAlignment: spaceBetween
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: rtl
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 47 pixels on the right.
+
+The relevant error-causing widget was:
+  Row Row:file:///home/runner/work/RAGAA/RAGAA/lib/ui/pages/dashboard_page.dart:349:25
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#2a6b9 relayoutBoundary=up19 OVERFLOWING:
+  creator: Row ← Column ← Padding ← DecoratedBox ← Container ← Padding ← Column ← LayoutBuilder ←
+    Column ← Padding ← Semantics ← DefaultTextStyle ← ⋯
+  parentData: offset=Offset(0.0, 0.0); flex=null; fit=null (can use size)
+  constraints: BoxConstraints(0.0<=w<=230.0, 0.0<=h<=Infinity)
+  size: Size(230.0, 25.0)
+  direction: horizontal
+  mainAxisAlignment: spaceBetween
+  mainAxisSize: max
+  crossAxisAlignment: center
+  textDirection: rtl
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+[dashboard @ 320dp / 100%] layout error: Multiple exceptions (3) were detected during the running of
+the current test, and at least one was unexpected.
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      main.expectNoLayoutError (file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart:110:7)
+#2      main.<anonymous closure> (file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart:188:11)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  dashboard survives every phone/tablet/desktop width and scale
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:13 +29 -1: /home/runner/work/RAGAA/RAGAA/test/ui_screenshots_test.dart: captures the real UI at phone, tablet and desktop sizes
+00:13 +29 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale [E]
+  Test failed. See exception logs above.
+  The test description was: dashboard survives every phone/tablet/desktop width and scale
+  
+00:13 +29 -1: /home/runner/work/RAGAA/RAGAA/test/ui_screenshots_test.dart: captures the real UI at phone, tablet and desktop sizes
+Screenshot written: review/ui/screenshots/05_phone_outlets_412.png
+Screenshot written: review/ui/screenshots/06_phone_reports_412.png
+Screenshot written: review/ui/screenshots/07_phone_drawer_412.png
+
+Warning: A call to tap() with finder "Found 1 widget with text "التحصيل" descending from widget with type "NavigationBar": [
+  Text("التحصيل", inherit: true, color: Color(alpha: 1.0000, red: 0.3922, green: 0.4549, blue: 0.5451, colorSpace: ColorSpace.sRGB), family: Tajawal, size: 12.5, weight: 600, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(288.4, 896.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#f77ec relayoutBoundary=up19
+The hit test result at that offset is: HitTestResult(RenderPointerListener#798ad@Offset(180.4, 896.0), RenderSemanticsGestureHandler#ceed3@Offset(180.4, 896.0), RenderPointerListener#48282@Offset(180.4, 896.0), _RenderScrollSemantics#1c19f@Offset(180.4, 896.0), RenderClipRect#e7841@Offset(180.4, 896.0), RenderPadding#a6c4d@Offset(180.4, 896.0), _RenderInkFeatures#44a85@Offset(180.4, 896.0), RenderCustomPaint#ba1db@Offset(180.4, 896.0), RenderPhysicalShape#01b14@Offset(180.4, 896.0), RenderConstrainedBox#24526@Offset(180.4, 896.0), RenderSemanticsAnnotations#f5457@Offset(180.4, 896.0), RenderSemanticsAnnotations#d9f63@Offset(180.4, 896.0), RenderRepaintBoundary#289e5@Offset(180.4, 896.0), RenderPositionedBox#2bc62@Offset(180.4, 896.0), RenderPositionedBox#8d88a@Offset(288.4, 896.0), RenderStack#4dece@Offset(288.4, 896.0), RenderRepaintBoundary#0523f@Offset(288.4, 896.0), RenderPointerListener#432ee@Offset(288.4, 896.0), RenderCustomMultiChildLayoutBox#915d9@Offset(288.4, 896.0), _RenderInkFeatures#a07a2@Offset(288.4, 896.0), RenderPhysicalModel#e1641@Offset(288.4, 896.0), _RenderLayoutBuilder#80108@Offset(288.4, 896.0), RenderSemanticsAnnotations#89666@Offset(288.4, 896.0), RenderRepaintBoundary#18183@Offset(288.4, 896.0), RenderIgnorePointer#00ea0@Offset(288.4, 896.0), RenderAnimatedOpacity#cb54d@Offset(288.4, 896.0), RenderAnimatedOpacity#37867@Offset(288.4, 896.0), _RenderColoredBox#d518a@Offset(288.4, 896.0), RenderAnimatedOpacity#c3904@Offset(288.4, 896.0), RenderIgnorePointer#76fed@Offset(288.4, 896.0), RenderAnimatedOpacity#8e2fd@Offset(288.4, 896.0), RenderRepaintBoundary#e7582@Offset(288.4, 896.0), RenderSemanticsAnnotations#0fd60@Offset(288.4, 896.0), RenderOffstage#00240@Offset(288.4, 896.0), RenderSemanticsAnnotations#9bdfd@Offset(288.4, 896.0), _RenderTheater#cd2f5@Offset(288.4, 896.0), RenderAbsorbPointer#9e2d4@Offset(288.4, 896.0), RenderPointerListener#4f74a@Offset(288.4, 896.0), RenderSemanticsAnnotations#51c19@Offset(288.4, 896.0), RenderSemanticsAnnotations#b90e4@Offset(288.4, 896.0), RenderSemanticsAnnotations#856a5@Offset(288.4, 896.0), RenderSemanticsAnnotations#dcaa8@Offset(288.4, 896.0), RenderTapRegionSurface#ad222@Offset(288.4, 896.0), RenderSemanticsAnnotations#bdb21@Offset(288.4, 896.0), RenderSemanticsAnnotations#28d87@Offset(288.4, 896.0), RenderRepaintBoundary#f9553@Offset(288.4, 896.0), HitTestEntry<HitTestTarget>#83564(_ReusableRenderView#8ec4f), HitTestEntry<HitTestTarget>#4fc89(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2164:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1946:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1079:7)
+#3      main.openBarTab (file:///home/runner/work/RAGAA/RAGAA/test/ui_screenshots_test.dart:125:18)
+#4      main.<anonymous closure> (file:///home/runner/work/RAGAA/RAGAA/test/ui_screenshots_test.dart:199:11)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+
+Warning: A call to tap() with finder "Found 1 widget with key [<'shell_new_collection'>]: [
+  FloatingActionButton-[<'shell_new_collection'>](hero, extended, dependencies: [InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#fa584]]),
+]" derived an Offset (Offset(93.9, 797.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderMergeSemantics#e6d33 relayoutBoundary=up4
+The hit test result at that offset is: HitTestResult(_RenderColoredBox#6e7ee@Offset(93.9, 797.0), RenderSemanticsAnnotations#3c3fb@Offset(93.9, 797.0), RenderPointerListener#0fa73@Offset(93.9, 797.0), RenderSemanticsGestureHandler#21462@Offset(93.9, 797.0), RenderExcludeSemantics#defbc@Offset(93.9, 797.0), RenderBlockSemantics#6136c@Offset(93.9, 797.0), RenderStack#4dece@Offset(93.9, 797.0), RenderRepaintBoundary#0523f@Offset(93.9, 797.0), RenderPointerListener#432ee@Offset(93.9, 797.0), RenderCustomMultiChildLayoutBox#915d9@Offset(93.9, 797.0), _RenderInkFeatures#a07a2@Offset(93.9, 797.0), RenderPhysicalModel#e1641@Offset(93.9, 797.0), _RenderLayoutBuilder#80108@Offset(93.9, 797.0), RenderSemanticsAnnotations#89666@Offset(93.9, 797.0), RenderRepaintBoundary#18183@Offset(93.9, 797.0), RenderIgnorePointer#00ea0@Offset(93.9, 797.0), RenderAnimatedOpacity#cb54d@Offset(93.9, 797.0), RenderAnimatedOpacity#37867@Offset(93.9, 797.0), _RenderColoredBox#d518a@Offset(93.9, 797.0), RenderAnimatedOpacity#c3904@Offset(93.9, 797.0), RenderIgnorePointer#76fed@Offset(93.9, 797.0), RenderAnimatedOpacity#8e2fd@Offset(93.9, 797.0), RenderRepaintBoundary#e7582@Offset(93.9, 797.0), RenderSemanticsAnnotations#0fd60@Offset(93.9, 797.0), RenderOffstage#00240@Offset(93.9, 797.0), RenderSemanticsAnnotations#9bdfd@Offset(93.9, 797.0), _RenderTheater#cd2f5@Offset(93.9, 797.0), RenderAbsorbPointer#9e2d4@Offset(93.9, 797.0), RenderPointerListener#4f74a@Offset(93.9, 797.0), RenderSemanticsAnnotations#51c19@Offset(93.9, 797.0), RenderSemanticsAnnotations#b90e4@Offset(93.9, 797.0), RenderSemanticsAnnotations#856a5@Offset(93.9, 797.0), RenderSemanticsAnnotations#dcaa8@Offset(93.9, 797.0), RenderTapRegionSurface#ad222@Offset(93.9, 797.0), RenderSemanticsAnnotations#bdb21@Offset(93.9, 797.0), RenderSemanticsAnnotations#28d87@Offset(93.9, 797.0), RenderRepaintBoundary#f9553@Offset(93.9, 797.0), HitTestEntry<HitTestTarget>#54b4f(_ReusableRenderView#8ec4f), HitTestEntry<HitTestTarget>#039a5(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2164:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1946:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1079:7)
+#3      main.<anonymous closure> (file:///home/runner/work/RAGAA/RAGAA/test/ui_screenshots_test.dart:200:18)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+Screenshot written: review/ui/screenshots/08_phone_entry_form_412.png
+Screenshot written: review/ui/screenshots/09_tablet_dashboard_834.png
+Screenshot written: review/ui/screenshots/10_desktop_dashboard_1440.png
+Screenshot written: review/ui/screenshots/11_desktop_dashboard_1440_text150.png
+00:16 +30 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collections survives every phone/tablet/desktop width and scale
+00:19 +31 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
+00:27 +32 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: reports survives every phone/tablet/desktop width and scale
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+[reports @ 320dp / 100%] layout error: A RenderFlex overflowed by 147 pixels on the right.
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      main.expectNoLayoutError (file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart:110:7)
+#2      main.<anonymous closure> (file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart:188:11)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  reports survives every phone/tablet/desktop width and scale
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:27 +32 -2: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: reports survives every phone/tablet/desktop width and scale [E]
+  Test failed. See exception logs above.
+  The test description was: reports survives every phone/tablet/desktop width and scale
+  
+00:27 +32 -2: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: audit survives every phone/tablet/desktop width and scale
+00:32 +33 -2: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: backup survives every phone/tablet/desktop width and scale
+00:37 +34 -2: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: phone shell keeps every navigation label readable and never duplicates the record-collection button
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: no matching candidates
+  Actual: _KeyWidgetFinder:<Found 1 widget with key [<'shell_new_collection'>]: [
+            FloatingActionButton-[<'shell_new_collection'>](hero, extended, dependencies:
+[InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#dc346]]),
+          ]>
+   Which: means one was found but none were expected
+shell @ 360dp / 100%: no duplicate collection button on the dashboard
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart:236:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart line 236
+The test description was:
+  phone shell keeps every navigation label readable and never duplicates the record-collection
+  button
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:38 +34 -3: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: phone shell keeps every navigation label readable and never duplicates the record-collection button [E]
+  Test failed. See exception logs above.
+  The test description was: phone shell keeps every navigation label readable and never duplicates the record-collection button
+  
+00:38 +34 -3: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: period selector degrades to a dropdown on phones and keeps all four options reachable
+00:39 +35 -3: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: Arabic outlet names are laid out horizontally, never letter by letter
+00:40 +36 -3: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collection amounts and totals stay fully visible inside their cards on the narrowest phone
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a value less than or equal to <320.5>
+  Actual: <321.0>
+   Which: is not a value less than or equal to <320.5>
+collections @ 320dp / 200%: "الوردية" escapes the screen (right edge 321.0 > 320.0)
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart:365:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart line 365
+The test description was:
+  collection amounts and totals stay fully visible inside their cards on the narrowest phone
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:41 +36 -4: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collection amounts and totals stay fully visible inside their cards on the narrowest phone [E]
+  Test failed. See exception logs above.
+  The test description was: collection amounts and totals stay fully visible inside their cards on the narrowest phone
+  
+00:41 +36 -4: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: the on-screen keyboard never covers the entry save bar
+00:41 +37 -4: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: (tearDownAll)
+00:41 +37 -4: Some tests failed.
+
+Failing tests:
+  /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collection amounts and totals stay fully visible inside their cards on the narrowest phone
+  /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale
+  /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: phone shell keeps every navigation label readable and never duplicates the record-collection button
+  /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: reports survives every phone/tablet/desktop width and scale
