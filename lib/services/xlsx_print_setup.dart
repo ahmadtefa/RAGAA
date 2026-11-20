@@ -35,7 +35,7 @@ class XlsxPrintSetup {
     try {
       final files = _readZip(bytes);
       final workbookXml = _readText(files, _workbookPath);
-      if (workbookXml == null || workbookXml.contains('<calcPr')) {
+      if (workbookXml == null || workbookXml.contains('fullCalcOnLoad')) {
         return XlsxPrintSetupResult(bytes: bytes, applied: false);
       }
       final patched = _injectCalcPr(workbookXml);
@@ -53,7 +53,9 @@ class XlsxPrintSetup {
     }
   }
 
-  /// Applies the printable page setup to the worksheet called [sheetName].
+  /// Applies the printable page setup (landscape, fit-to-one-page-wide, frozen
+  /// header rows, repeating header rows and an explicit print area) to the
+  /// worksheet called [sheetName].
   ///
   /// [lastRow] and [lastColumn] are 0-based inclusive indexes of the used range;
   /// [freezeRows] is the number of header rows kept visible when scrolling and
@@ -114,6 +116,112 @@ class XlsxPrintSetup {
     }
   }
 
+  /// Applies the same printable page setup to **every** worksheet of the
+  /// workbook, deriving each print area from the sheet's own `<dimension>`
+  /// element so no column or row is ever cut off when printing.
+  static XlsxPrintSetupResult applyAll(
+    Uint8List bytes, {
+    int freezeRows = 3,
+    bool landscape = true,
+  }) {
+    try {
+      final files = _readZip(bytes);
+      var workbookXml = _readText(files, _workbookPath);
+      if (workbookXml == null) {
+        return XlsxPrintSetupResult(bytes: bytes, applied: false);
+      }
+
+      final sheetNames = <String>[];
+      for (final match in RegExp(r'<sheet\b[^>]*>').allMatches(workbookXml)) {
+        final nameMatch =
+            RegExp(r'name="([^"]*)"').firstMatch(match.group(0)!);
+        if (nameMatch != null) sheetNames.add(nameMatch.group(1)!);
+      }
+      if (sheetNames.isEmpty) {
+        return XlsxPrintSetupResult(bytes: bytes, applied: false);
+      }
+
+      final definitions = StringBuffer();
+      var changed = false;
+      for (var index = 0; index < sheetNames.length; index++) {
+        final sheetPath = _resolveSheetPath(files, workbookXml, index);
+        if (sheetPath == null) continue;
+        final sheetXml = _readText(files, sheetPath);
+        if (sheetXml == null) continue;
+
+        var patched = _injectSheetProperties(sheetXml);
+        patched = _injectFrozenPane(patched, freezeRows: freezeRows);
+        patched = _injectPageSetup(patched, landscape: landscape);
+        if (patched != sheetXml) {
+          files[sheetPath] = utf8.encode(patched);
+          changed = true;
+        }
+
+        final lastCell = _lastCellRef(patched) ?? 'A1';
+        definitions.write(
+          '<definedName name="_xlnm.Print_Area" localSheetId="$index">'
+          "'${_escapeXml(sheetNames[index])}'!\$A\$1:$lastCell"
+          '</definedName>',
+        );
+      }
+
+      final withAreas =
+          _injectDefinedNames(workbookXml, definitions.toString());
+      if (withAreas != null) {
+        workbookXml = withAreas;
+        changed = true;
+      }
+      final withCalcPr = _injectCalcPr(workbookXml);
+      if (withCalcPr != null) {
+        workbookXml = withCalcPr;
+        changed = true;
+      }
+      files[_workbookPath] = utf8.encode(workbookXml);
+
+      if (!changed) {
+        return XlsxPrintSetupResult(bytes: bytes, applied: false);
+      }
+      final encoded = _writeZip(files);
+      if (encoded == null) {
+        return XlsxPrintSetupResult(bytes: bytes, applied: false);
+      }
+      return XlsxPrintSetupResult(bytes: encoded, applied: true);
+    } catch (_) {
+      return XlsxPrintSetupResult(bytes: bytes, applied: false);
+    }
+  }
+
+  /// Reads the used range of a worksheet from its `<dimension ref="A1:H40"/>`,
+  /// falling back to the maximum cell reference when no dimension is written.
+  static String? _lastCellRef(String sheetXml) {
+    final match =
+        RegExp(r'<dimension\s+ref="([A-Z]+\d+)(?::([A-Z]+\d+))?"')
+            .firstMatch(sheetXml);
+    if (match != null) return match.group(2) ?? match.group(1);
+
+    var maxColumn = 0;
+    var maxRow = 0;
+    var found = false;
+    for (final cell
+        in RegExp(r'<c\s+r="([A-Z]+)(\d+)"').allMatches(sheetXml)) {
+      final column = _columnIndex(cell.group(1)!);
+      final row = int.parse(cell.group(2)!);
+      if (!found || column > maxColumn) maxColumn = column;
+      if (!found || row > maxRow) maxRow = row;
+      found = true;
+    }
+    if (!found) return null;
+    return '${_columnLetter(maxColumn)}$maxRow';
+  }
+
+  static int _columnIndex(String letters) {
+    var value = 0;
+    for (final unit in letters.codeUnits) {
+      value = value * 26 + (unit - 64);
+    }
+    return value - 1;
+  }
+
   // ---------------------------------------------------------------------------
   // ZIP helpers
   // ---------------------------------------------------------------------------
@@ -149,7 +257,13 @@ class XlsxPrintSetup {
   // ---------------------------------------------------------------------------
 
   static String? _injectCalcPr(String workbookXml) {
-    if (workbookXml.contains('<calcPr')) return null;
+    if (workbookXml.contains('fullCalcOnLoad')) return null;
+    // The `excel` package always writes an empty `<calcPr/>`; replace it rather
+    // than appending a second element (which would be invalid OOXML).
+    final existing = RegExp(r'<calcPr\b[^>]*/>').firstMatch(workbookXml);
+    if (existing != null) {
+      return workbookXml.replaceRange(existing.start, existing.end, _calcPr);
+    }
     final closeIndex = workbookXml.lastIndexOf('</workbook>');
     if (closeIndex < 0) return null;
     return workbookXml.replaceRange(
@@ -209,18 +323,65 @@ class XlsxPrintSetup {
   /// Injects the print area `definedNames` block in schema order.
   static String? _injectPrintArea(String workbookXml, String printArea) {
     if (workbookXml.contains('_xlnm.Print_Area')) return null;
-    final existing = workbookXml.indexOf('<definedNames>');
+    // Drop the empty placeholders written by the `excel` package so the
+    // workbook keeps a single legal `<definedNames>` element.
+    var xml = workbookXml
+        .replaceAll('<definedNames/>', '')
+        .replaceAll('<definedNames></definedNames>', '');
+    final inner = printArea
+        .replaceFirst('<definedNames>', '')
+        .replaceFirst('</definedNames>', '');
+    final existing = xml.indexOf('<definedNames>');
     if (existing >= 0) {
-      final inner = printArea
-          .replaceFirst('<definedNames>', '')
-          .replaceFirst('</definedNames>', '');
-      return workbookXml.replaceRange(existing, existing, inner);
+      final close = xml.indexOf('</definedNames>', existing);
+      if (close < 0) return null;
+      return xml.replaceRange(close, close, inner);
     }
-    final insertion = workbookXml.contains('<calcPr')
-        ? workbookXml.indexOf('<calcPr')
-        : workbookXml.lastIndexOf('</workbook>');
+    // `<definedNames>` must precede `<calcPr>` in the workbook schema.
+    final insertion = xml.contains('<calcPr')
+        ? xml.indexOf('<calcPr')
+        : xml.lastIndexOf('</workbook>');
     if (insertion < 0) return null;
-    return workbookXml.replaceRange(insertion, insertion, printArea);
+    return xml.replaceRange(insertion, insertion, printArea);
+  }
+
+  /// Inserts the `<definedNames>` entries produced by [entries] (already
+  /// serialised `<definedName>` elements) in the schema-correct position.
+  static String? _injectDefinedNames(String workbookXml, String entries) {
+    if (entries.isEmpty) return null;
+    var xml = workbookXml
+        .replaceAll('<definedNames/>', '')
+        .replaceAll('<definedNames></definedNames>', '');
+    final existing = xml.indexOf('<definedNames>');
+    if (existing >= 0) {
+      final close = xml.indexOf('</definedNames>', existing);
+      if (close < 0) return null;
+      // Never duplicate a print area that is already declared for that sheet.
+      final body = xml.substring(existing, close);
+      final missing = <String>[];
+      for (final match in RegExp(r'<definedName\b[^>]*>.*?</definedName>')
+          .allMatches(entries)) {
+        final element = match.group(0)!;
+        final localMatch =
+            RegExp(r'localSheetId="(\d+)"').firstMatch(element);
+        final marker = localMatch == null
+            ? element
+            : 'localSheetId="${localMatch.group(1)}"';
+        if (localMatch != null && body.contains(marker)) continue;
+        missing.add(element);
+      }
+      if (missing.isEmpty) return null;
+      return xml.replaceRange(close, close, missing.join());
+    }
+    final insertion = xml.contains('<calcPr')
+        ? xml.indexOf('<calcPr')
+        : xml.lastIndexOf('</workbook>');
+    if (insertion < 0) return null;
+    return xml.replaceRange(
+      insertion,
+      insertion,
+      '<definedNames>$entries</definedNames>',
+    );
   }
 
   // ---------------------------------------------------------------------------

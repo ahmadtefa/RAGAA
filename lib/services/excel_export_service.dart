@@ -165,11 +165,10 @@ class ExcelExportService {
     );
 
     // 6. Daily journal sheet (single-day reports mirror the paper form exactly).
-    int? journalLastRow;
     if (report.filter.range.startKey == report.filter.range.endKey) {
       final journalSheet = excel[dailyJournalSheetName];
       journalSheet.isRTL = true;
-      journalLastRow = _buildJournalSheet(
+      _buildJournalSheet(
         sheet: journalSheet,
         journal: DailyJournal.fromReport(report),
       );
@@ -179,11 +178,7 @@ class ExcelExportService {
       excel.delete(defaultSheet);
     }
 
-    return _finalizeWorkbook(
-      excel,
-      journalSheetName: journalLastRow == null ? null : dailyJournalSheetName,
-      journalLastRow: journalLastRow,
-    );
+    return _finalizeWorkbook(excel);
   }
 
   /// Builds a standalone `.xlsx` workbook that contains only the daily journal
@@ -194,16 +189,12 @@ class ExcelExportService {
 
     final sheet = excel[dailyJournalSheetName];
     sheet.isRTL = true;
-    final lastRow = _buildJournalSheet(sheet: sheet, journal: journal);
+    _buildJournalSheet(sheet: sheet, journal: journal);
 
     if (defaultSheet != null) {
       excel.delete(defaultSheet);
     }
-    return _finalizeWorkbook(
-      excel,
-      journalSheetName: dailyJournalSheetName,
-      journalLastRow: lastRow,
-    );
+    return _finalizeWorkbook(excel);
   }
 
   /// Writes the standalone journal workbook to [outputPath].
@@ -221,11 +212,7 @@ class ExcelExportService {
   /// Encodes the workbook, forces RTL on every sheet and applies the printable
   /// page setup (landscape, fit-to-width, frozen header, print area) to the
   /// journal sheet.
-  Uint8List _finalizeWorkbook(
-    Excel excel, {
-    String? journalSheetName,
-    int? journalLastRow,
-  }) {
+  Uint8List _finalizeWorkbook(Excel excel) {
     final initialBytes = excel.encode();
     if (initialBytes == null || initialBytes.isEmpty) {
       throw const RagaaException('تعذر إنشاء ملف Excel');
@@ -250,16 +237,10 @@ class ExcelExportService {
       encoded = recalc.bytes;
     }
 
-    if (journalSheetName == null || journalLastRow == null) {
-      return encoded;
-    }
-
-    final patched = XlsxPrintSetup.apply(
-      encoded,
-      sheetName: journalSheetName,
-      lastRow: journalLastRow,
-      lastColumn: journalHeaders.length - 1,
-    );
+    // Give every sheet a print-ready page setup (landscape, fit-to-width,
+    // frozen header rows, repeating header and an explicit print area) so the
+    // workbook prints exactly like the PDF.
+    final patched = XlsxPrintSetup.applyAll(encoded);
     if (patched.applied && _decodesCleanly(patched.bytes)) {
       return patched.bytes;
     }
