@@ -1,32 +1,67 @@
-00:00 +0: loading /home/runner/work/RAGAA/RAGAA/test/widget_test.dart
-00:00 +0: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: validates operational dates, shift times, and Arabic/Latin money
-00:00 +1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules scales total = general total − total fees (official example)
-00:00 +2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:00 +3: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:00 +4: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:00 +5: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:00 +6: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:00 +7: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:00 +8: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:00 +9: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:02 +10: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:02 +11: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:04 +12: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:04 +13: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:05 +14: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
-00:05 +15: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values
-00:06 +16: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values
-00:06 +17: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values
-00:06 +18: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: updating shift count (3 -> 2 -> 3) and shift times preserves all historical data
-00:06 +19: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
-00:07 +20: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
-00:07 +21: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
-00:07 +22: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
-00:07 +23: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: multi-day reports keep all sheets and skip the single-day journal
-00:07 +24: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: journal PDFs span multiple pages without losing the header
-00:07 +25: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the general report PDF still renders for the same dataset
-00:09 +26: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a legacy v1 database to the current schema without data loss
-00:09 +27: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a v2 database (daily-journal fields) and keeps outlet order
-00:10 +28: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
-review samples: 8 outlets, 18 recorded shifts, grand total 8190000 piastres
-00:11 +29: All tests passed!
+00:00 +0: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart
+00:00 +0: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
+00:00 +0 -1: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples [E]
+  'package:pdf/src/widgets/geometry.dart': Failed assertion: line 133 pos 12: 'width > 0.0': is not true.
+  dart:core                                                   _AssertionError._throwNew
+  package:pdf/src/widgets/geometry.dart 133:12                BoxConstraints.constrainSizeAndAttemptToPreserveAspectRatio
+  package:pdf/src/widgets/basic.dart 559:26                   FittedBox.layout
+  package:pdf/src/widgets/basic.dart 355:14                   Align.layout
+  package:pdf/src/widgets/basic.dart 94:14                    Padding.layout
+  package:pdf/src/widgets/widget.dart 304:14                  SingleChildWidget.layout
+  package:pdf/src/widgets/basic.dart 508:14                   ConstrainedBox.layout
+  package:pdf/src/widgets/widget.dart 239:15                  StatelessWidget.layout
+  package:pdf/src/widgets/flex.dart 280:15                    Flex.layout
+  package:pdf/src/widgets/multi_page.dart 369:13              MultiPage.generate
+  package:pdf/src/widgets/document.dart 118:10                Document.addPage
+  package:ragaa/services/daily_journal_pdf_service.dart 47:9  DailyJournalPdfService.buildJournalPdfBytes
+  
+00:00 +0 -1: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a legacy v1 database to the current schema without data loss
+00:00 +1 -1: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a v2 database (daily-journal fields) and keeps outlet order
+00:01 +2 -1: loading /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart
+00:01 +2 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
+00:02 +3 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
+00:06 +4 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: validates operational dates, shift times, and Arabic/Latin money
+00:06 +5 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:07 +5 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:07 +5 -2: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values [E]
+  'package:pdf/src/widgets/geometry.dart': Failed assertion: line 133 pos 12: 'width > 0.0': is not true.
+  dart:core                                                   _AssertionError._throwNew
+  package:pdf/src/widgets/geometry.dart 133:12                BoxConstraints.constrainSizeAndAttemptToPreserveAspectRatio
+  package:pdf/src/widgets/basic.dart 559:26                   FittedBox.layout
+  package:pdf/src/widgets/basic.dart 355:14                   Align.layout
+  package:pdf/src/widgets/basic.dart 94:14                    Padding.layout
+  package:pdf/src/widgets/widget.dart 304:14                  SingleChildWidget.layout
+  package:pdf/src/widgets/basic.dart 508:14                   ConstrainedBox.layout
+  package:pdf/src/widgets/widget.dart 239:15                  StatelessWidget.layout
+  package:pdf/src/widgets/flex.dart 280:15                    Flex.layout
+  package:pdf/src/widgets/multi_page.dart 369:13              MultiPage.generate
+  package:pdf/src/widgets/document.dart 118:10                Document.addPage
+  package:ragaa/services/daily_journal_pdf_service.dart 47:9  DailyJournalPdfService.buildJournalPdfBytes
+  
+00:07 +6 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:08 +7 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:08 +8 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:08 +9 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:10 +10 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:10 +11 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +12 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +13 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +14 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +15 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +16 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +17 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +18 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +19 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +20 -2: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
+00:12 +21 -2: loading /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart
+00:13 +21 -2: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates outlets with 2 or 3 independent shifts and custom schedules
+00:13 +22 -2: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: stores independent daily journal fields and derives scales without double counting payments
+00:13 +23 -2: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: updating shift count (3 -> 2 -> 3) and shift times preserves all historical data
+00:13 +24 -2: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: strictly prevents duplicate collection and logs all edits in audit_logs
+00:13 +25 -2: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: migrates legacy Phase 1 SharedPreferences data into SQLite once
+00:14 +26 -2: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates verified backups, rejects corrupted files, and restores safely with safety snapshot
+00:14 +27 -2: Some tests failed.
+
+Failing tests:
+  /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values
+  /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
