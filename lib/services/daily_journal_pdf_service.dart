@@ -84,7 +84,7 @@ class DailyJournalPdfService {
       padding: const pw.EdgeInsets.symmetric(horizontal: 2, vertical: 0.3),
       decoration: pw.BoxDecoration(color: fill,
         border: pw.Border.all(width: 0.35, color: PdfColors.black)),
-      child: pw.FittedBox(fit: pw.BoxFit.scaleDown, child: pw.Text(text,
+      child: text.isEmpty ? null : pw.FittedBox(fit: pw.BoxFit.scaleDown, child: pw.Text(text,
         textDirection: RegExp(r'[\u0600-\u06ff]').hasMatch(text)
             ? pw.TextDirection.rtl : pw.TextDirection.ltr,
         style: pw.TextStyle(fontSize: 10,

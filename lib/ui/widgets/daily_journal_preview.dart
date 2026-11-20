@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:printing/printing.dart';
 
 import '../../models/daily_journal.dart';
