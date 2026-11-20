@@ -1,0 +1,55 @@
+**********************
+PowerShell transcript start
+Start time: 20261120205040
+Username: runnervmbpeip\runneradmin
+RunAs User: runnervmbpeip\runneradmin
+Configuration Name: 
+Machine: runnervmbpeip (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\08775772-81aa-463c-88c2-4786b1847c97.ps1'
+Process ID: 7020
+PSVersion: 7.6.10
+PSEdition: Core
+GitCommitId: 7.6.10
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Running D:\a\RAGAA\RAGAA\artifacts\RAGAA-Setup.exe /VERYSILENT /DIR=D:\a\_temp\RAGAA-installed
+Installer exit code: 0
+
+FullName                                                    Length
+--------                                                    ------
+D:\a\_temp\RAGAA-installed\data
+D:\a\_temp\RAGAA-installed\file_selector_windows_plugin.dll 109568
+D:\a\_temp\RAGAA-installed\flutter_windows.dll              21332480
+D:\a\_temp\RAGAA-installed\pdfium.dll                       4749824
+D:\a\_temp\RAGAA-installed\printing_plugin.dll              137216
+D:\a\_temp\RAGAA-installed\ragaa.exe                        92672
+D:\a\_temp\RAGAA-installed\README-Windows.txt               1765
+D:\a\_temp\RAGAA-installed\share_plus_plugin.dll            137216
+D:\a\_temp\RAGAA-installed\sqlite3_flutter_libs_plugin.dll  9728
+D:\a\_temp\RAGAA-installed\sqlite3.dll                      1496064
+D:\a\_temp\RAGAA-installed\unins000.dat                     6963
+D:\a\_temp\RAGAA-installed\unins000.exe                     4398338
+D:\a\_temp\RAGAA-installed\url_launcher_windows_plugin.dll  97792
+D:\a\_temp\RAGAA-installed\data\flutter_assets
+D:\a\_temp\RAGAA-installed\data\app.so                      10650584
+D:\a\_temp\RAGAA-installed\data\icudtl.dat                  864880
+
+Start menu folder: C:\Users\runneradmin\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\RAGAA
+
+Name
+----
+RAGAA.lnk
+إلغاء تثبيت RAGAA.lnk
+
+Start-menu shortcut: C:\Users\runneradmin\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\RAGAA\RAGAA.lnk
+Uninstaller exit code: 0
+Installer smoke test passed.
+**********************
+PowerShell transcript end
+End time: 20261120205055
+**********************
