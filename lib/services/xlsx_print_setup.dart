@@ -157,6 +157,10 @@ class XlsxPrintSetup {
           changed = true;
         }
 
+        if (sheetNames[index] == 'اليومية') {
+          definitions.write('<definedName name="_xlnm.Print_Titles" localSheetId="$index">'
+              "'اليومية'!\$1:\$3</definedName>");
+        }
         final lastCell = _lastCellRef(patched) ?? 'A1';
         definitions.write(
           '<definedName name="_xlnm.Print_Area" localSheetId="$index">'

@@ -194,9 +194,9 @@ void main() {
 
     // Title & header rows.
     expect(textAt(sheet, 0, 0), contains(kDailyJournalTitle));
-    expect(textAt(sheet, 0, 2), 'البيان');
-    expect(textAt(sheet, 7, 2), 'الإجمالي العام');
-    expect(textAt(sheet, 4, 2), 'إجمالي الموازين');
+    expect(textAt(sheet, 0, 1), 'البيان');
+    expect(textAt(sheet, 7, 1), 'إجمالي عام');
+    expect(textAt(sheet, 4, 1), 'إجمالي الموازين');
 
     // Locate rows by their first-column label.
     final rowIndexByLabel = <String, int>{};
@@ -236,6 +236,10 @@ void main() {
       final label = 'إجمالي ${defaultShiftLabel(section.shiftNumber)}';
       final row = rowIndexByLabel[label];
       if (row == null) fail('missing total row $label');
+      final firstRow = row - section.rows.length;
+      final greenFormula = formulaAt(sheet, 8, firstRow);
+      expect(greenFormula, 'SUM(H${firstRow + 1}:H${firstRow + section.greenRowCount})');
+      expect(evaluateSumFormula(sheet, greenFormula!), section.firstFivePiastres / 100);
       final formula = formulaAt(sheet, 7, row);
       if (formula == null) fail('shift total row $label has no formula');
       expect(formula.startsWith('SUM(H'), isTrue);
@@ -252,7 +256,7 @@ void main() {
     }
 
     // «إجمالي اليوم لكل منفذ» — one independent row per outlet.
-    final dayTotalBandRow = rowIndexByLabel['إجمالي اليوم لكل منفذ'];
+    final dayTotalBandRow = rowIndexByLabel['إجمالي اليوم'];
     if (dayTotalBandRow == null) fail('missing the per-outlet day total band');
     final dayTotalLabels = <String>[];
     var scan = dayTotalBandRow + 1;

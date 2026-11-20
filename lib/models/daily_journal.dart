@@ -133,6 +133,12 @@ class JournalShiftSection {
     required this.totals,
   });
 
+  int get greenRowCount => rows.length < 5 ? rows.length : 5;
+
+  int get firstFivePiastres => rows.take(greenRowCount).fold<int>(
+        0, (sum, row) => sum + row.amounts.generalTotalPiastres,
+      );
+
   int get recordedCount => rows.where((row) => row.hasRecord).length;
 
   bool get isFullyRecorded => rows.isNotEmpty && recordedCount == rows.length;

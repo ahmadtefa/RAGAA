@@ -299,8 +299,8 @@ class ExcelExportService {
   static final CellStyle _journalHeaderStyle = CellStyle(
     bold: true,
     fontSize: 10,
-    fontColorHex: ExcelColor.white,
-    backgroundColorHex: ExcelColor.fromHexString('#0F5C54'),
+    
+    
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,
     leftBorder: _journalBorder,
@@ -334,7 +334,7 @@ class ExcelExportService {
     fontSize: 10,
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,
-    backgroundColorHex: ExcelColor.fromHexString('#D9BE8A'),
+    backgroundColorHex: ExcelColor.fromHexString('#DDC19B'),
     numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
     leftBorder: _journalBorder,
     rightBorder: _journalBorder,
@@ -345,20 +345,8 @@ class ExcelExportService {
   static final CellStyle _journalBandStyle = CellStyle(
     bold: true,
     fontSize: 10,
-    fontColorHex: ExcelColor.fromHexString('#0F5C54'),
-    backgroundColorHex: ExcelColor.fromHexString('#E3EFEC'),
-    horizontalAlign: HorizontalAlign.Right,
-    verticalAlign: VerticalAlign.Center,
-    leftBorder: _journalBorder,
-    rightBorder: _journalBorder,
-    topBorder: _journalBorder,
-    bottomBorder: _journalBorder,
-  );
-
-  static final CellStyle _journalShiftTotalLabelStyle = CellStyle(
-    bold: true,
-    fontSize: 10,
-    backgroundColorHex: ExcelColor.fromHexString('#F7EC00'),
+    fontColorHex: ExcelColor.fromHexString('#111111'),
+    backgroundColorHex: ExcelColor.fromHexString('#F2F0EE'),
     horizontalAlign: HorizontalAlign.Right,
     verticalAlign: VerticalAlign.Center,
     leftBorder: _journalBorder,
@@ -370,7 +358,7 @@ class ExcelExportService {
   static final CellStyle _journalShiftTotalMoneyStyle = CellStyle(
     bold: true,
     fontSize: 10,
-    backgroundColorHex: ExcelColor.fromHexString('#F7EC00'),
+    backgroundColorHex: ExcelColor.fromHexString('#FFEB35'),
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,
     numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
@@ -383,7 +371,7 @@ class ExcelExportService {
   static final CellStyle _journalDayTotalLabelStyle = CellStyle(
     bold: true,
     fontSize: 10,
-    backgroundColorHex: ExcelColor.fromHexString('#E2D9EC'),
+    backgroundColorHex: ExcelColor.fromHexString('#E2DAE9'),
     horizontalAlign: HorizontalAlign.Right,
     verticalAlign: VerticalAlign.Center,
     leftBorder: _journalBorder,
@@ -395,7 +383,7 @@ class ExcelExportService {
   static final CellStyle _journalDayTotalMoneyStyle = CellStyle(
     bold: true,
     fontSize: 10,
-    backgroundColorHex: ExcelColor.fromHexString('#E2D9EC'),
+    backgroundColorHex: ExcelColor.fromHexString('#E2DAE9'),
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,
     numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
@@ -408,17 +396,24 @@ class ExcelExportService {
   static final CellStyle _journalTitleStyle = CellStyle(
     bold: true,
     fontSize: 14,
-    fontColorHex: ExcelColor.white,
-    backgroundColorHex: ExcelColor.fromHexString('#0F5C54'),
+    
+    
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,
   );
 
-  static final CellStyle _journalSubtleStyle = CellStyle(
+  static final CellStyle _greenStyle = CellStyle(
+    bold: true,
+    fontColorHex: ExcelColor.white,
     fontSize: 10,
-    fontColorHex: ExcelColor.fromHexString('#475569'),
+    backgroundColorHex: ExcelColor.fromHexString('#38743A'),
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,
+    numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
   );
 
   static final Border _journalBorder = Border(
@@ -433,51 +428,28 @@ class ExcelExportService {
   }) {
     var row = 0;
 
-    // Row 1 — title (merged across the eight columns).
-    _setCell(
-      sheet,
-      0,
-      row,
-      TextCellValue('${journal.title} — ${journal.headerLine}'),
-      _journalTitleStyle,
-    );
-    for (var column = 1; column < journalHeaders.length; column++) {
-      _setCell(sheet, column, row, TextCellValue(''), _journalTitleStyle);
-    }
-    _mergeRow(sheet, row, journalHeaders.length - 1);
-    sheet.setRowHeight(row, 26);
-    row++;
-
-    // Row 2 — metadata (outlets / shifts / print timestamp).
-    _setCell(
-      sheet,
-      0,
-      row,
-      TextCellValue(
-        'المنافذ: ${journal.outletsFilterLabel} (${journal.outletCount} منفذ)   |   '
-        'الورديات المفعّلة: ${journal.configuredShiftCount}   |   '
-        'الورديات المسجّلة: ${journal.recordedShiftsCount}   |   '
-        'تاريخ الطباعة: ${formatTimestamp(journal.generatedAt)}',
-      ),
-      _journalSubtleStyle,
-    );
-    for (var column = 1; column < journalHeaders.length; column++) {
-      _setCell(sheet, column, row, TextCellValue(''), _journalSubtleStyle);
-    }
-    _mergeRow(sheet, row, journalHeaders.length - 1);
-    row++;
-
-    // Row 3 — repeating column header (frozen + repeated when printed).
-    for (var column = 0; column < journalHeaders.length; column++) {
-      _setCell(
-        sheet,
-        column,
-        row,
-        TextCellValue(journalHeaders[column]),
-        _journalHeaderStyle,
+    void merge(int left, int top, int right, int bottom) {
+      if (left == right && top == bottom) return;
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: left, rowIndex: top),
+        CellIndex.indexByColumnRow(columnIndex: right, rowIndex: bottom),
       );
     }
-    row++;
+
+    merge(0, 0, 8, 0);
+    _setCell(sheet, 0, 0, TextCellValue('${journal.title} ${journal.headerLine}'),
+        _journalTitleStyle);
+    sheet.setRowHeight(0, 23);
+    for (final col in [0, 3, 4, 5, 6, 7]) {
+      merge(col, 1, col == 7 ? 8 : col, 2);
+      _setCell(sheet, col, 1, TextCellValue(col == 7 ? 'إجمالي عام' : journalHeaders[col]),
+          _journalHeaderStyle);
+    }
+    merge(1, 1, 2, 1);
+    _setCell(sheet, 1, 1, TextCellValue('رسوم'), _journalHeaderStyle);
+    _setCell(sheet, 1, 2, TextCellValue('يدوي'), _journalHeaderStyle);
+    _setCell(sheet, 2, 2, TextCellValue('آلي'), _journalHeaderStyle);
+    row = 3;
 
     final outletRows = <String, List<int>>{};
 
@@ -487,16 +459,13 @@ class ExcelExportService {
         sheet,
         0,
         row,
-        TextCellValue(
-          '${section.shiftLabel} — '
-          '${section.recordedCount}/${section.rows.length} وردية مسجّلة',
-        ),
+        TextCellValue(defaultShiftLabel(section.shiftNumber)),
         _journalBandStyle,
       );
       for (var column = 1; column < journalHeaders.length; column++) {
         _setCell(sheet, column, row, TextCellValue(''), _journalBandStyle);
       }
-      _mergeRow(sheet, row, journalHeaders.length - 1);
+      _mergeRow(sheet, row, 8);
       row++;
 
       final firstDataRow = row;
@@ -541,17 +510,25 @@ class ExcelExportService {
             _setCell(sheet, column, row, TextCellValue(''), _journalMoneyStyle);
           }
         }
+        if (row - firstDataRow >= section.greenRowCount) merge(7, row, 8, row);
         outletRows.putIfAbsent(journalRow.outletId, () => <int>[]).add(row);
         row++;
       }
 
+      final end = firstDataRow + section.greenRowCount;
+      if (end > firstDataRow) {
+        merge(8, firstDataRow, 8, end - 1);
+        _setCell(sheet, 8, firstDataRow,
+            FormulaCellValue('SUM(H${firstDataRow + 1}:H$end)'), _greenStyle);
+      }
+      merge(7, row, 8, row);
       // Yellow shift total row built with SUM formulas.
       _setCell(
         sheet,
         0,
         row,
         TextCellValue('إجمالي ${defaultShiftLabel(section.shiftNumber)}'),
-        _journalShiftTotalLabelStyle,
+        _journalDayTotalLabelStyle,
       );
       for (var column = 1; column < journalHeaders.length; column++) {
         final letter = _columnLetter(column);
@@ -562,35 +539,35 @@ class ExcelExportService {
           FormulaCellValue(
             'SUM($letter${firstDataRow + 1}:$letter$row)',
           ),
-          _journalShiftTotalMoneyStyle,
+          column == 7 ? _journalShiftTotalMoneyStyle : _journalDayTotalMoneyStyle,
         );
       }
       row++;
     }
 
     // Section 6 — «إجمالي اليوم لكل منفذ» (mandatory, one row per outlet).
-    row++;
     _setCell(
       sheet,
       0,
       row,
-      TextCellValue('إجمالي اليوم لكل منفذ'),
+      TextCellValue('إجمالي اليوم'),
       _journalBandStyle,
     );
     for (var column = 1; column < journalHeaders.length; column++) {
       _setCell(sheet, column, row, TextCellValue(''), _journalBandStyle);
     }
-    _mergeRow(sheet, row, journalHeaders.length - 1);
+    _mergeRow(sheet, row, 8);
     row++;
 
     final firstDayTotalRow = row;
     for (final total in journal.outletDayTotals) {
+      merge(7, row, 8, row);
       _setCell(
         sheet,
         0,
         row,
         TextCellValue(total.outletName),
-        _journalDayTotalLabelStyle,
+        _journalLabelStyle,
       );
       final rowsForOutlet = outletRows[total.outletId] ?? const <int>[];
       for (var column = 1; column < journalHeaders.length; column++) {
@@ -605,13 +582,14 @@ class ExcelExportService {
           references.isEmpty
               ? const IntCellValue(0)
               : FormulaCellValue('SUM($references)'),
-          _journalDayTotalMoneyStyle,
+          column == 4 ? _journalScalesStyle : _journalMoneyStyle,
         );
       }
       row++;
     }
 
     // Section 7 — «الإجمالي العام لليوم»: sum of the independent outlet totals.
+    merge(7, row, 8, row);
     final lastDayTotalRow = row - 1;
     _setCell(
       sheet,
@@ -626,15 +604,18 @@ class ExcelExportService {
         sheet,
         column,
         row,
-        FormulaCellValue(
+        journal.outletDayTotals.isEmpty ? const IntCellValue(0) : FormulaCellValue(
           'SUM($letter${firstDayTotalRow + 1}:$letter${lastDayTotalRow + 1})',
         ),
-        _journalDayTotalMoneyStyle,
+        column == 7 ? _journalShiftTotalMoneyStyle : _journalDayTotalMoneyStyle,
       );
     }
     final lastRow = row;
 
-    const widths = <double>[30, 16, 16, 17, 18, 13, 13, 18];
+    for (var r = 3; r <= row; r++) {
+      sheet.setRowHeight(r, 17);
+    }
+    const widths = <double>[24, 15, 15, 19, 19, 15, 15, 14, 11];
     for (var index = 0; index < widths.length; index++) {
       sheet.setColumnWidth(index, widths[index]);
     }
