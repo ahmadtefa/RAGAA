@@ -1,8 +1,2 @@
 Analyzing RAGAA...                                              
-
-warning • Returning a 'Future' without 'await' inside a try block. Try adding an 'await' • lib/state/ragaa_controller.dart:271:7 • unawaited_return_in_try_block
-warning • Returning a 'Future' without 'await' inside a try block. Try adding an 'await' • lib/state/ragaa_controller.dart:303:7 • unawaited_return_in_try_block
-warning • Returning a 'Future' without 'await' inside a try block. Try adding an 'await' • lib/state/ragaa_controller.dart:403:7 • unawaited_return_in_try_block
-warning • Returning a 'Future' without 'await' inside a try block. Try adding an 'await' • lib/state/ragaa_controller.dart:430:7 • unawaited_return_in_try_block
-
-4 issues found. (ran in 9.5s)
+No issues found! (ran in 10.4s)

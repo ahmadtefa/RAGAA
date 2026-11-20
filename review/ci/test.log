@@ -3,29 +3,22 @@
 00:00 +1: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
 00:00 +2: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
 review samples: 8 outlets, 18 recorded shifts, grand total 8190000 piastres
-00:02 +3: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules scales total = general total − total fees (official example)
-00:02 +4: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules total fees stays independent of manual + automatic fees
-00:02 +5: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules empty NFC/VISA are counted and stored as zero and never re-added
-00:02 +6: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure builds per-shift sections, shift totals, per-outlet day totals and a non-duplicated grand total
-00:02 +7: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure journal for a day without data keeps the empty paper form
-00:02 +8: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure rejects invalid operational dates
-00:02 +9: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure outlet order can be changed without losing any data
-00:02 +10: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure moveOutlet moves a single outlet up and down
-00:07 +11: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: validates operational dates, shift times, and Arabic/Latin money
-00:07 +12: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +13: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +14: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +15: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +16: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +17: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:08 +18: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:02 +3: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
+00:02 +4: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
+00:08 +5: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: validates operational dates, shift times, and Arabic/Latin money
+00:08 +6: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +7: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +8: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:10 +9: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:10 +10: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:11 +11: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
 
 Warning: A call to tap() with finder "Found 1 widget with key [<'collection_save_button'>]: [
-  FilledButton-[<'collection_save_button'>](style: ButtonStyle#21262(textStyle: WidgetStatePropertyAll(null), minimumSize: WidgetStatePropertyAll(Size(200.0, 54.0)), mouseCursor: WidgetStateMapper<MouseCursor?>({WidgetState.disabled: null, WidgetState.any: null})), dependencies: [IconTheme, InheritedCupertinoTheme, MediaQuery, _InheritedTheme, _LocalizationsScope-[GlobalKey#4b8de]], state: _ButtonStyleState#a71b2),
+  FilledButton-[<'collection_save_button'>](style: ButtonStyle#1b8d7(textStyle: WidgetStatePropertyAll(null), minimumSize: WidgetStatePropertyAll(Size(200.0, 54.0)), mouseCursor: WidgetStateMapper<MouseCursor?>({WidgetState.disabled: null, WidgetState.any: null})), dependencies: [IconTheme, InheritedCupertinoTheme, MediaQuery, _InheritedTheme, _LocalizationsScope-[GlobalKey#935bc]], state: _ButtonStyleState#e0915),
 ]" derived an Offset (Offset(138.0, 863.0)) that would not hit test on the specified widget.
 Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
-The finder corresponds to this RenderBox: RenderSemanticsAnnotations#baff9 relayoutBoundary=up8
-The hit test result at that offset is: HitTestResult(RenderParagraph#dee2b@Offset(106.0, 8.0), RenderPadding#a2265@Offset(106.0, 22.0), RenderFlex#a4d6a@Offset(106.0, 22.0), RenderWrap#36eff@Offset(106.0, 22.0), RenderPadding#72e96@Offset(122.0, 22.0), _RenderInkFeatures#51513@Offset(122.0, 22.0), RenderCustomPaint#c7d42@Offset(122.0, 22.0), RenderPhysicalShape#8e178@Offset(122.0, 22.0), RenderPadding#a76d3@Offset(138.0, 38.0), RenderPadding#db11f@Offset(138.0, 38.0), RenderPointerListener#a290a@Offset(138.0, 38.0), RenderSemanticsGestureHandler#af67f@Offset(138.0, 38.0), RenderSemanticsAnnotations#97162@Offset(138.0, 38.0), RenderPositionedBox#db52b@Offset(138.0, 38.0), RenderAnimatedOpacity#44654@Offset(138.0, 38.0), RenderClipRect#e1116@Offset(138.0, 38.0), RenderOffstage#91f40@Offset(138.0, 38.0), RenderConstrainedBox#1a0da@Offset(138.0, 38.0), RenderCustomMultiChildLayoutBox#a0cdc@Offset(138.0, 863.0), _RenderInkFeatures#8815a@Offset(138.0, 863.0), RenderPhysicalModel#af670@Offset(138.0, 863.0), RenderSemanticsAnnotations#e07a9@Offset(138.0, 863.0), RenderRepaintBoundary#699e0@Offset(138.0, 863.0), RenderIgnorePointer#4fd0c@Offset(138.0, 863.0), RenderAnimatedOpacity#ec2ce@Offset(138.0, 863.0), RenderAnimatedOpacity#08ad4@Offset(138.0, 863.0), _RenderColoredBox#3514f@Offset(138.0, 863.0), RenderAnimatedOpacity#165e2@Offset(138.0, 863.0), RenderIgnorePointer#3a5e6@Offset(138.0, 863.0), RenderAnimatedOpacity#c0a93@Offset(138.0, 863.0), RenderRepaintBoundary#156f2@Offset(138.0, 863.0), RenderSemanticsAnnotations#2ac36@Offset(138.0, 863.0), RenderOffstage#f0586@Offset(138.0, 863.0), RenderSemanticsAnnotations#f6699@Offset(138.0, 863.0), _RenderTheater#112dd@Offset(138.0, 863.0), RenderAbsorbPointer#4ae1c@Offset(138.0, 863.0), RenderPointerListener#37cec@Offset(138.0, 863.0), RenderSemanticsAnnotations#82d1d@Offset(138.0, 863.0), RenderSemanticsAnnotations#dd766@Offset(138.0, 863.0), RenderSemanticsAnnotations#fc4cb@Offset(138.0, 863.0), RenderSemanticsAnnotations#39ed3@Offset(138.0, 863.0), RenderTapRegionSurface#90155@Offset(138.0, 863.0), RenderSemanticsAnnotations#aedc2@Offset(138.0, 863.0), RenderSemanticsAnnotations#df6ce@Offset(138.0, 863.0), HitTestEntry<HitTestTarget>#4a589(_ReusableRenderView#91d03), HitTestEntry<HitTestTarget>#ab257(<AutomatedTestWidgetsFlutterBinding>))
+The finder corresponds to this RenderBox: RenderSemanticsAnnotations#7527e relayoutBoundary=up8
+The hit test result at that offset is: HitTestResult(RenderParagraph#eb6ee@Offset(106.0, 8.0), RenderPadding#26990@Offset(106.0, 22.0), RenderFlex#9b380@Offset(106.0, 22.0), RenderWrap#5986e@Offset(106.0, 22.0), RenderPadding#b4890@Offset(122.0, 22.0), _RenderInkFeatures#49866@Offset(122.0, 22.0), RenderCustomPaint#f5981@Offset(122.0, 22.0), RenderPhysicalShape#50c4e@Offset(122.0, 22.0), RenderPadding#8b97c@Offset(138.0, 38.0), RenderPadding#f2502@Offset(138.0, 38.0), RenderPointerListener#c354d@Offset(138.0, 38.0), RenderSemanticsGestureHandler#fa44b@Offset(138.0, 38.0), RenderSemanticsAnnotations#0250c@Offset(138.0, 38.0), RenderPositionedBox#11154@Offset(138.0, 38.0), RenderAnimatedOpacity#ff260@Offset(138.0, 38.0), RenderClipRect#a87f6@Offset(138.0, 38.0), RenderOffstage#0fa6e@Offset(138.0, 38.0), RenderConstrainedBox#9ae43@Offset(138.0, 38.0), RenderCustomMultiChildLayoutBox#87f95@Offset(138.0, 863.0), _RenderInkFeatures#fdc4a@Offset(138.0, 863.0), RenderPhysicalModel#af3d6@Offset(138.0, 863.0), RenderSemanticsAnnotations#f95cf@Offset(138.0, 863.0), RenderRepaintBoundary#0e289@Offset(138.0, 863.0), RenderIgnorePointer#19f8b@Offset(138.0, 863.0), RenderAnimatedOpacity#cf9aa@Offset(138.0, 863.0), RenderAnimatedOpacity#74def@Offset(138.0, 863.0), _RenderColoredBox#7079d@Offset(138.0, 863.0), RenderAnimatedOpacity#8859c@Offset(138.0, 863.0), RenderIgnorePointer#90301@Offset(138.0, 863.0), RenderAnimatedOpacity#5c2fb@Offset(138.0, 863.0), RenderRepaintBoundary#2f12e@Offset(138.0, 863.0), RenderSemanticsAnnotations#2bd06@Offset(138.0, 863.0), RenderOffstage#3dc35@Offset(138.0, 863.0), RenderSemanticsAnnotations#23053@Offset(138.0, 863.0), _RenderTheater#3c2ec@Offset(138.0, 863.0), RenderAbsorbPointer#173f8@Offset(138.0, 863.0), RenderPointerListener#36e87@Offset(138.0, 863.0), RenderSemanticsAnnotations#a18a0@Offset(138.0, 863.0), RenderSemanticsAnnotations#61e9a@Offset(138.0, 863.0), RenderSemanticsAnnotations#51106@Offset(138.0, 863.0), RenderSemanticsAnnotations#56f38@Offset(138.0, 863.0), RenderTapRegionSurface#c64fa@Offset(138.0, 863.0), RenderSemanticsAnnotations#4f3c4@Offset(138.0, 863.0), RenderSemanticsAnnotations#3a208@Offset(138.0, 863.0), HitTestEntry<HitTestTarget>#31a08(_ReusableRenderView#44890), HitTestEntry<HitTestTarget>#db606(<AutomatedTestWidgetsFlutterBinding>))
 #0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2164:25)
 #1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1946:12)
 #2      WidgetController.tap (package:flutter_test/src/controller.dart:1079:7)
@@ -61,22 +54,29 @@ This was caught by the test expectation on the following line:
 The test description was:
   full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
 ════════════════════════════════════════════════════════════════════════════════════════════════════
-00:10 +18 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup [E]
+00:12 +11 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup [E]
   Test failed. See exception logs above.
   The test description was: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
   
-00:10 +18 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
-00:10 +19 -1: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values
-00:11 +20 -1: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: the single-day report workbook contains the same journal sheet
-00:12 +21 -1: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: multi-day reports keep all sheets and skip the single-day journal
-00:12 +22 -1: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: journal PDFs span multiple pages without losing the header
-00:12 +23 -1: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: journal PDFs span multiple pages without losing the header
-00:12 +24 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
-00:13 +25 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
-00:13 +26 -1: loading /home/runner/work/RAGAA/RAGAA/test/collection_amounts_test.dart
-00:14 +26 -1: /home/runner/work/RAGAA/RAGAA/test/collection_amounts_test.dart: derives scales from independently entered general total and total fees
-00:14 +27 -1: /home/runner/work/RAGAA/RAGAA/test/collection_amounts_test.dart: accepts omitted electronic payments as zero
-00:14 +28 -1: Some tests failed.
+00:12 +11 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
+00:12 +12 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
+00:12 +13 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
+00:13 +14 -1: loading /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart
+00:14 +14 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules scales total = general total − total fees (official example)
+00:14 +15 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules total fees stays independent of manual + automatic fees
+00:14 +16 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules empty NFC/VISA are counted and stored as zero and never re-added
+00:14 +17 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure builds per-shift sections, shift totals, per-outlet day totals and a non-duplicated grand total
+00:14 +18 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure journal for a day without data keeps the empty paper form
+00:14 +19 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure rejects invalid operational dates
+00:14 +20 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure outlet order can be changed without losing any data
+00:14 +21 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure moveOutlet moves a single outlet up and down
+00:15 +22 -1: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates outlets with 2 or 3 independent shifts and custom schedules
+00:15 +23 -1: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: stores independent daily journal fields and derives scales without double counting payments
+00:15 +24 -1: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: updating shift count (3 -> 2 -> 3) and shift times preserves all historical data
+00:15 +25 -1: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: strictly prevents duplicate collection and logs all edits in audit_logs
+00:15 +26 -1: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: migrates legacy Phase 1 SharedPreferences data into SQLite once
+00:15 +27 -1: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates verified backups, rejects corrupted files, and restores safely with safety snapshot
+00:16 +28 -1: Some tests failed.
 
 Failing tests:
   /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
