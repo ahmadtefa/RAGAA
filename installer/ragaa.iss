@@ -11,7 +11,7 @@
 ;  the end user never needs Flutter or Visual Studio installed.
 ;
 ;  User accounting data lives outside the install directory
-;  (%APPDATA%\..\RAGAA\data\ragaa_accounting.db) and is therefore preserved on
+;  (%APPDATA%\RAGAA\RAGAA\data\ragaa_accounting.db) and is therefore preserved
 ;  upgrade and on a normal uninstall.
 ; ============================================================================
 
@@ -76,6 +76,6 @@ Filename: "{app}\{#AppExeName}"; Description: "تشغيل RAGAA / Launch RAGAA";
 [UninstallDelete]
 ; Only files the installer itself created inside the install folder are removed.
 ; The SQLite database, backups and exports are kept on purpose:
-;   %APPDATA%\..\RAGAA\data\ragaa_accounting.db
+;   %APPDATA%\RAGAA\RAGAA\data\ragaa_accounting.db
 ;   Documents\RAGAA\backups , Documents\RAGAA\exports
 Type: filesandordirs; Name: "{app}\data"

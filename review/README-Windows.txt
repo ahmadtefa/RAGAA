@@ -16,7 +16,7 @@ RAGAA — نظام إدارة تحصيل المنافذ (Windows)
 مكان البيانات
 ------------
 قاعدة البيانات المحلية:
-    %APPDATA%\..\RAGAA\data\ragaa_accounting.db
+    %APPDATA%\RAGAA\RAGAA\data\ragaa_accounting.db
 النسخ الاحتياطية والتقارير المصدّرة (PDF / Excel):
     Documents\RAGAA\backups
     Documents\RAGAA\exports
