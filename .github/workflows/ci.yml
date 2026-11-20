@@ -43,10 +43,33 @@ jobs:
         run: flutter pub get
 
       - name: Run static analysis
-        run: flutter analyze
+        run: |
+          mkdir -p review/ci
+          set -o pipefail
+          flutter analyze 2>&1 | tee review/ci/analyze.log
 
       - name: Run automated Flutter tests
-        run: flutter test --reporter expanded --coverage
+        if: always()
+        run: |
+          mkdir -p review/ci
+          set -o pipefail
+          flutter test --reporter expanded --coverage 2>&1 | tee review/ci/test.log
+
+      # Publishes the analyzer/test output back to the branch so the results can
+      # be inspected without access to the Actions log endpoints.
+      - name: Publish analyzer & test logs to the branch
+        if: always() && github.event_name == 'push' && github.ref_name != 'main'
+        continue-on-error: true
+        run: |
+          if [ -z "$(git status --porcelain review/ci)" ]; then
+            echo "No log changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f review/ci
+          git commit -m "chore(ci): analyzer and test logs [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Upload test results & coverage
         if: always()
@@ -198,6 +221,26 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Configure optional release keystore (from repository secrets)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "No release keystore secret configured -> release APK is signed with the debug key (installable)."
+            exit 0
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release.jks
+          cat > android/key.properties <<EOF
+          storePassword=${ANDROID_STORE_PASSWORD}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          storeFile=release.jks
+          EOF
+          echo "Release keystore configured."
 
       - name: Build release APK
         run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
