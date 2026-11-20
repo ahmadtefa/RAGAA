@@ -268,7 +268,7 @@ class RagaaController extends ChangeNotifier {
     notifyListeners();
     try {
       final file = await pdfExportService.exportReportToFile(report, path);
-      return _deliverSaved(
+      return await _deliverSaved(
         file.path,
         mimeType: 'application/pdf',
       );
@@ -300,7 +300,7 @@ class RagaaController extends ChangeNotifier {
     notifyListeners();
     try {
       final file = await excelExportService.exportReportToFile(report, path);
-      return _deliverSaved(
+      return await _deliverSaved(
         file.path,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
@@ -400,7 +400,7 @@ class RagaaController extends ChangeNotifier {
         journal,
         path,
       );
-      return _deliverSaved(
+      return await _deliverSaved(
         file.path,
         mimeType: 'application/pdf',
       );
@@ -427,7 +427,7 @@ class RagaaController extends ChangeNotifier {
     notifyListeners();
     try {
       final file = await excelExportService.exportJournalToFile(journal, path);
-      return _deliverSaved(
+      return await _deliverSaved(
         file.path,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
