@@ -11,6 +11,16 @@ import 'package:ragaa/services/excel_export_service.dart';
 import 'package:ragaa/services/pdf_export_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+/// Reads any numeric Excel cell (integers are decoded as `IntCellValue`).
+double moneyAt(Sheet sheet, int column, int row) {
+  final value = sheet
+      .cell(CellIndex.indexByColumnRow(columnIndex: column, rowIndex: row))
+      .value;
+  if (value is DoubleCellValue) return value.value;
+  if (value is IntCellValue) return value.value.toDouble();
+  fail('cell (row $row, column $column) is not numeric: $value');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -227,10 +237,7 @@ void main() {
     // grand total so nothing is double counted between the two exports.
     var generalSum = 0.0;
     for (var row = 3; row < 7; row++) {
-      final cell = detailsSheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row))
-          .value;
-      generalSum += (cell as DoubleCellValue).value;
+      generalSum += moneyAt(detailsSheet, 12, row);
     }
     expect(generalSum, closeTo(8751.25, 0.0001));
 

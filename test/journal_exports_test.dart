@@ -41,37 +41,113 @@ String textAt(Sheet sheet, int column, int row) {
   return value.toString();
 }
 
-/// Sums every numeric cell referenced by a simple `SUM(B5:B12)` / `SUM(B5,B9)`
-/// formula so the produced formulas can be verified without a spreadsheet.
-double evaluateSumFormula(Sheet sheet, String formula) {
-  final match = RegExp(r'^SUM\((.*)\)$').firstMatch(formula.trim());
-  expect(match, isNotNull, reason: 'unexpected formula "$formula"');
-  final body = match!.group(1)!;
+/// Resolves a numeric cell, following simple `SUM()` / subtraction formulas so
+/// that nested formulas (e.g. a totals row that sums difference formulas) can
+/// be verified without a spreadsheet application.
+double? cellNumber(Sheet sheet, int column, int row, [int depth = 0]) {
+  if (depth > 8) return null;
+  final value = sheet
+      .cell(CellIndex.indexByColumnRow(columnIndex: column, rowIndex: row))
+      .value;
+  if (value is DoubleCellValue) return value.value;
+  if (value is IntCellValue) return value.value.toDouble();
+  if (value is FormulaCellValue) return evaluateFormula(sheet, value.formula, depth + 1);
+  return null;
+}
+
+int _columnOf(String letters) => letters.codeUnitAt(0) - 65;
+
+double _sumRange(Sheet sheet, String body, int depth) {
   var total = 0.0;
   for (final part in body.split(',')) {
     final trimmed = part.trim();
+    if (trimmed.isEmpty) continue;
     final rangeMatch =
         RegExp(r'^([A-Z]+)(\d+):([A-Z]+)(\d+)$').firstMatch(trimmed);
     if (rangeMatch != null) {
-      final column = rangeMatch.group(1)!.codeUnitAt(0) - 65;
+      final column = _columnOf(rangeMatch.group(1)!);
       final firstRow = int.parse(rangeMatch.group(2)!) - 1;
       final lastRow = int.parse(rangeMatch.group(4)!) - 1;
       for (var row = firstRow; row <= lastRow; row++) {
-        total += numberAt(sheet, column, row) ?? 0;
+        total += cellNumber(sheet, column, row, depth) ?? 0;
       }
       continue;
     }
     final single = RegExp(r'^([A-Z]+)(\d+)$').firstMatch(trimmed);
     if (single != null) {
-      final column = single.group(1)!.codeUnitAt(0) - 65;
-      final row = int.parse(single.group(2)!) - 1;
-      total += numberAt(sheet, column, row) ?? 0;
+      total += cellNumber(
+            sheet,
+            _columnOf(single.group(1)!),
+            int.parse(single.group(2)!) - 1,
+            depth,
+          ) ??
+          0;
       continue;
     }
     total += double.parse(trimmed);
   }
   return total;
 }
+
+/// Evaluates the small formula subset RAGAA writes: `A1`, `A1:B9`, `SUM(...)`
+/// and `+`/`-` chains of those.
+double evaluateFormula(Sheet sheet, String formula, [int depth = 0]) {
+  final text = formula.trim().replaceAll('=', '');
+  var total = 0.0;
+  var sign = 1.0;
+  final token =
+      RegExp(r'^(SUM\([^()]*\)|[A-Z]+\d+(?::[A-Z]+\d+)?|\d+(?:\.\d+)?)');
+  var rest = text;
+  var expectTerm = true;
+  while (rest.isNotEmpty) {
+    if (expectTerm) {
+      final match = token.firstMatch(rest);
+      expect(match, isNotNull, reason: 'unexpected formula "$formula"');
+      final piece = match!.group(1)!;
+      double value;
+      if (piece.startsWith('SUM(')) {
+        value = _sumRange(
+          sheet,
+          piece.substring(4, piece.length - 1),
+          depth,
+        );
+      } else {
+        final rangeMatch =
+            RegExp(r'^([A-Z]+)(\d+):([A-Z]+)(\d+)$').firstMatch(piece);
+        if (rangeMatch != null) {
+          value = _sumRange(sheet, piece, depth);
+        } else {
+          final single = RegExp(r'^([A-Z]+)(\d+)$').firstMatch(piece);
+          if (single != null) {
+            value = cellNumber(
+                  sheet,
+                  _columnOf(single.group(1)!),
+                  int.parse(single.group(2)!) - 1,
+                  depth,
+                ) ??
+                0;
+          } else {
+            value = double.parse(piece);
+          }
+        }
+      }
+      total += sign * value;
+      rest = rest.substring(match.end).trimLeft();
+      expectTerm = false;
+      continue;
+    }
+    final op = rest[0];
+    expect(op == '+' || op == '-', isTrue, reason: 'bad operator in "$formula"');
+    sign = op == '-' ? -1.0 : 1.0;
+    rest = rest.substring(1).trimLeft();
+    expectTerm = true;
+  }
+  return total;
+}
+
+/// Sums every numeric cell referenced by a formula (see [evaluateFormula]).
+double evaluateSumFormula(Sheet sheet, String formula) =>
+    evaluateFormula(sheet, formula);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
