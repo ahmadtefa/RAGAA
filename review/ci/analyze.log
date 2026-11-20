@@ -1,5 +1,2 @@
 Analyzing RAGAA...                                              
-
-  error • Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it • lib/services/excel_export_service.dart:1325:1 • expected_executable
-
-1 issue found. (ran in 8.7s)
+No issues found! (ran in 9.1s)

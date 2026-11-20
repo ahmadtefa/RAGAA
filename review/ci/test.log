@@ -1,131 +1,49 @@
 00:00 +0: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart
-lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-}
-^
-00:00 +0 -1: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart [E]
-  Failed to load "/home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart":
-  Compilation failed for testPath=/home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-  }
-  ^
-  .
-  Error: The Dart compiler exited unexpectedly.
-  package:flutter_tools/src/base/common.dart 36:3  throwToolExit
-  package:flutter_tools/src/compile.dart 1029:11   DefaultResidentCompiler._compile.<fn>
-  dart:async/future_impl.dart 961:45               Future._propagateToListeners.handleValueCallback
-  dart:async/future_impl.dart 990:13               Future._propagateToListeners
-  dart:async/future_impl.dart 874:9                Future._propagateToListeners
-  dart:async/future_impl.dart 732:5                Future._completeWithValue
-  dart:async/future_impl.dart 816:7                Future._asyncCompleteWithValue.<fn>
-  dart:async/zone.dart 474:14                      Zone.runGuarded
-  dart:async/zone.dart 604:18                      Zone.bindCallbackGuarded.<fn>
-  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
-  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
-  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
-  dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
+00:00 +0: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
+00:01 +1: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
+review samples: 8 outlets, 18 recorded shifts, grand total 8190000 piastres
+00:01 +2: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a v2 database (daily-journal fields) and keeps outlet order
+00:02 +3: loading /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart
+00:03 +3: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules scales total = general total − total fees (official example)
+00:03 +4: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules total fees stays independent of manual + automatic fees
+00:03 +5: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules empty NFC/VISA are counted and stored as zero and never re-added
+00:03 +6: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure builds per-shift sections, shift totals, per-outlet day totals and a non-duplicated grand total
+00:03 +7: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure journal for a day without data keeps the empty paper form
+00:03 +8: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure rejects invalid operational dates
+00:03 +9: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure outlet order can be changed without losing any data
+00:03 +10: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure moveOutlet moves a single outlet up and down
+00:08 +11: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: validates operational dates, shift times, and Arabic/Latin money
+00:08 +12: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +13: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +14: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +15: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +16: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +17: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:09 +18: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:12 +18 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:12 +18 -1: /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values [E]
+  Expected: <81900.0>
+    Actual: <0.0>
   
-00:00 +0 -1: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a legacy v1 database to the current schema without data loss
-00:00 +1 -1: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a v2 database (daily-journal fields) and keeps outlet order
-00:00 +2 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules scales total = general total − total fees (official example)
-00:00 +3 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules total fees stays independent of manual + automatic fees
-00:00 +4 -1: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules empty NFC/VISA are counted and stored as zero and never re-added
-00:00 +4 -2: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules empty NFC/VISA are counted and stored as zero and never re-added [E]
-  Bad state: Too many elements
-  dart:core                            _Array.single
-  test/daily_journal_test.dart 168:49  main.<fn>.<fn>
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/journal_exports_test.dart 208:5                main.<fn>
   
-00:00 +4 -2: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure builds per-shift sections, shift totals, per-outlet day totals and a non-duplicated grand total
-00:00 +5 -2: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure journal for a day without data keeps the empty paper form
-00:00 +6 -2: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure rejects invalid operational dates
-00:00 +7 -2: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure outlet order can be changed without losing any data
-00:00 +8 -2: /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: journal structure moveOutlet moves a single outlet up and down
-lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-}
-^
-00:06 +9 -3: loading /home/runner/work/RAGAA/RAGAA/test/widget_test.dart [E]
-  Failed to load "/home/runner/work/RAGAA/RAGAA/test/widget_test.dart":
-  Compilation failed for testPath=/home/runner/work/RAGAA/RAGAA/test/widget_test.dart: lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-  }
-  ^
-  .
-00:06 +9 -3: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart [E]
-  Error: The Dart compiler exited unexpectedly.
-  package:flutter_tools/src/base/common.dart 36:3  throwToolExit
-  package:flutter_tools/src/compile.dart 1029:11   DefaultResidentCompiler._compile.<fn>
-  dart:async/future_impl.dart 961:45               Future._propagateToListeners.handleValueCallback
-  dart:async/future_impl.dart 990:13               Future._propagateToListeners
-  dart:async/future_impl.dart 874:9                Future._propagateToListeners
-  dart:async/future_impl.dart 732:5                Future._completeWithValue
-  dart:async/future_impl.dart 816:7                Future._asyncCompleteWithValue.<fn>
-  dart:async/zone.dart 474:14                      Zone.runGuarded
-  dart:async/zone.dart 604:18                      Zone.bindCallbackGuarded.<fn>
-  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
-  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
-  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
-  dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
+00:13 +19 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:13 +20 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:13 +21 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:13 +22 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:14 +23 -1: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
+00:15 +24 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
+00:15 +25 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
+00:16 +26 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
+00:16 +27 -1: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
+00:16 +27 -2: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx) [E]
+  type 'IntCellValue' is not a subtype of type 'DoubleCellValue' in type cast
+  test/reports_and_export_test.dart 233:27  main.<fn>
   
-lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-}
-^
-00:07 +9 -3: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates outlets with 2 or 3 independent shifts and custom schedules
-00:07 +10 -3: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: stores independent daily journal fields and derives scales without double counting payments
-00:07 +11 -3: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: updating shift count (3 -> 2 -> 3) and shift times preserves all historical data
-00:07 +12 -3: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: strictly prevents duplicate collection and logs all edits in audit_logs
-00:07 +13 -3: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: migrates legacy Phase 1 SharedPreferences data into SQLite once
-00:07 +14 -3: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates verified backups, rejects corrupted files, and restores safely with safety snapshot
-00:09 +15 -4: loading /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart [E]
-  Failed to load "/home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart":
-  Compilation failed for testPath=/home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-  }
-  ^
-  .
-00:09 +15 -4: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart [E]
-  Error: The Dart compiler exited unexpectedly.
-  package:flutter_tools/src/base/common.dart 36:3  throwToolExit
-  package:flutter_tools/src/compile.dart 1029:11   DefaultResidentCompiler._compile.<fn>
-  dart:async/future_impl.dart 961:45               Future._propagateToListeners.handleValueCallback
-  dart:async/future_impl.dart 990:13               Future._propagateToListeners
-  dart:async/future_impl.dart 874:9                Future._propagateToListeners
-  dart:async/future_impl.dart 732:5                Future._completeWithValue
-  dart:async/future_impl.dart 816:7                Future._asyncCompleteWithValue.<fn>
-  dart:async/zone.dart 474:14                      Zone.runGuarded
-  dart:async/zone.dart 604:18                      Zone.bindCallbackGuarded.<fn>
-  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
-  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
-  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
-  dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
-  
-lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-}
-^
-00:12 +15 -5: loading /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart [E]
-  Failed to load "/home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart":
-  Compilation failed for testPath=/home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: lib/services/excel_export_service.dart:1325:1: Error: Expected a declaration, but got '}'.
-  }
-  ^
-  .
-00:12 +15 -5: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart [E]
-  Error: The Dart compiler exited unexpectedly.
-  package:flutter_tools/src/base/common.dart 36:3  throwToolExit
-  package:flutter_tools/src/compile.dart 1029:11   DefaultResidentCompiler._compile.<fn>
-  dart:async/future_impl.dart 961:45               Future._propagateToListeners.handleValueCallback
-  dart:async/future_impl.dart 990:13               Future._propagateToListeners
-  dart:async/future_impl.dart 874:9                Future._propagateToListeners
-  dart:async/future_impl.dart 732:5                Future._completeWithValue
-  dart:async/future_impl.dart 816:7                Future._asyncCompleteWithValue.<fn>
-  dart:async/zone.dart 474:14                      Zone.runGuarded
-  dart:async/zone.dart 604:18                      Zone.bindCallbackGuarded.<fn>
-  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
-  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
-  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
-  dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
-  
-00:13 +15 -5: /home/runner/work/RAGAA/RAGAA/test/collection_amounts_test.dart: derives scales from independently entered general total and total fees
-00:13 +16 -5: /home/runner/work/RAGAA/RAGAA/test/collection_amounts_test.dart: accepts omitted electronic payments as zero
-00:14 +17 -5: Some tests failed.
+00:17 +27 -2: Some tests failed.
 
 Failing tests:
-  /home/runner/work/RAGAA/RAGAA/test/daily_journal_test.dart: approved financial rules empty NFC/VISA are counted and stored as zero and never re-added
-  /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: loading /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart
-  /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: loading /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart
-  /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart
-  /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: loading /home/runner/work/RAGAA/RAGAA/test/widget_test.dart
+  /home/runner/work/RAGAA/RAGAA/test/journal_exports_test.dart: PDF and Excel journal exports carry exactly the same values
+  /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
