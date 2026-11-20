@@ -26,4 +26,8 @@ Got dependencies!
 22 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Analyzing RAGAA...                                              
-No issues found! (ran in 10.6s)
+
+   info • The import of 'package:ragaa/core/formatters.dart' is unnecessary because all of the used elements are also provided by the import of 'package:ragaa/main.dart'. Try removing the import directive • test/responsive_layout_test.dart:9:8 • unnecessary_import
+   info • The import of 'package:ragaa/core/formatters.dart' is unnecessary because all of the used elements are also provided by the import of 'package:ragaa/main.dart'. Try removing the import directive • test/ui_screenshots_test.dart:10:8 • unnecessary_import
+
+2 issues found. (ran in 7.6s)
