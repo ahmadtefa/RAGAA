@@ -36,8 +36,7 @@ void main() {
       'computes daily, weekly, monthly, and custom reports with outlet/shift filters',
       () async {
     final maadi = await repo.createOutlet(name: 'منفذ المعادي', shiftCount: 2);
-    final nasr =
-        await repo.createOutlet(name: 'منفذ مدينة نصر', shiftCount: 3);
+    final nasr = await repo.createOutlet(name: 'منفذ مدينة نصر', shiftCount: 3);
 
     // Week of Saturday 2026-11-14 .. Friday 2026-11-20
     await repo.createCollection(
@@ -120,8 +119,7 @@ void main() {
   test('exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)',
       () async {
     final maadi = await repo.createOutlet(name: 'منفذ المعادي', shiftCount: 2);
-    final nasr =
-        await repo.createOutlet(name: 'منفذ مدينة نصر', shiftCount: 3);
+    final nasr = await repo.createOutlet(name: 'منفذ مدينة نصر', shiftCount: 3);
 
     final c1 = await repo.createCollection(
       outletId: maadi.id,
@@ -189,6 +187,7 @@ void main() {
         ExcelExportService.shiftsSheetName,
         ExcelExportService.dailySheetName,
         ExcelExportService.detailsSheetName,
+        ExcelExportService.dailyJournalSheetName,
       ]),
     );
 

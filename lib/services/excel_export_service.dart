@@ -17,6 +17,7 @@ class ExcelExportService {
   static const String shiftsSheetName = 'حسب الوردية';
   static const String dailySheetName = 'حسب اليوم';
   static const String detailsSheetName = 'تفاصيل التحصيل';
+  static const String dailyJournalSheetName = 'اليومية';
 
   /// Builds `.xlsx` file bytes for [report].
   Uint8List buildReportExcelBytes(ReportData report) {
@@ -161,6 +162,18 @@ class ExcelExportService {
       totalMoneyStyle: totalMoneyStyle,
     );
 
+    final journal = excel[dailyJournalSheetName];
+    journal.isRTL = true;
+    _buildDailyJournalSheet(
+        sheet: journal,
+        report: report,
+        titleStyle: titleStyle,
+        headerStyle: headerStyle,
+        textStyle: textCellStyle,
+        moneyStyle: moneyCellStyle,
+        totalTextStyle: totalTextStyle,
+        totalMoneyStyle: totalMoneyStyle);
+
     if (defaultSheet != null && defaultSheet != summarySheetName) {
       excel.delete(defaultSheet);
     }
@@ -204,6 +217,108 @@ class ExcelExportService {
     );
     cell.value = value;
     cell.cellStyle = style;
+  }
+
+  void _buildDailyJournalSheet(
+      {required Sheet sheet,
+      required ReportData report,
+      required CellStyle titleStyle,
+      required CellStyle headerStyle,
+      required CellStyle textStyle,
+      required CellStyle moneyStyle,
+      required CellStyle totalTextStyle,
+      required CellStyle totalMoneyStyle}) {
+    const headers = [
+      'المنفذ',
+      'يدوي',
+      'آلي',
+      'إجمالي الرسوم',
+      'الموازين',
+      'NFC',
+      'VISA',
+      'الإجمالي العام'
+    ];
+    _setCell(
+        sheet,
+        0,
+        0,
+        TextCellValue(
+            'يومية التحصيلات — ${report.filter.range.arabicDescription}'),
+        titleStyle);
+    for (var c = 1; c < headers.length; c++) {
+      _setCell(sheet, c, 0, TextCellValue(''), titleStyle);
+    }
+    sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
+        CellIndex.indexByColumnRow(
+            columnIndex: headers.length - 1, rowIndex: 0));
+    var r = 2;
+    final yellow = CellStyle(
+        bold: true,
+        backgroundColorHex: ExcelColor.fromHexString('#FFF200'),
+        horizontalAlign: HorizontalAlign.Center,
+        verticalAlign: VerticalAlign.Center,
+        numberFormat: NumFormat.custom(formatCode: '#,##0.00'));
+    for (final shift in [1, 2, 3]) {
+      final rows = report.details.where((e) => e.shiftNumber == shift).toList();
+      if (rows.isEmpty) continue;
+      _setCell(sheet, 0, r, TextCellValue('الوردية $shift'), titleStyle);
+      for (var c = 1; c < headers.length; c++) {
+        _setCell(sheet, c, r, TextCellValue(''), titleStyle);
+      }
+      sheet.merge(
+          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r),
+          CellIndex.indexByColumnRow(
+              columnIndex: headers.length - 1, rowIndex: r));
+      r++;
+      for (var c = 0; c < headers.length; c++) {
+        _setCell(sheet, c, r, TextCellValue(headers[c]), headerStyle);
+      }
+      r++;
+      final first = r + 1;
+      for (final e in rows) {
+        _setCell(sheet, 0, r, TextCellValue(e.outletName), textStyle);
+        final vals = [
+          e.manualFeesPiastres,
+          e.automaticFeesPiastres,
+          e.totalFeesPiastres,
+          e.scalesTotalPiastres,
+          e.nfcPiastres,
+          e.visaPiastres,
+          e.generalTotalPiastres
+        ];
+        for (var c = 0; c < vals.length; c++) {
+          _setCell(sheet, c + 1, r, DoubleCellValue(piastresToUnits(vals[c])),
+              moneyStyle);
+        }
+        r++;
+      }
+      _setCell(
+          sheet, 0, r, TextCellValue('إجمالي الوردية'), totalTextStyle);
+      for (var c = 1; c < headers.length; c++) {
+        _setCell(
+            sheet,
+            c,
+            r,
+            FormulaCellValue(
+                'SUM(${String.fromCharCode(65 + c)}$first:${String.fromCharCode(65 + c)}$r)'),
+            yellow);
+      }
+      r += 2;
+    }
+    _setCell(sheet, 0, r, TextCellValue('الإجمالي العام لليوم'),
+        totalTextStyle);
+    for (var c = 1; c < headers.length; c++) {
+      _setCell(
+          sheet,
+          c,
+          r,
+          FormulaCellValue(
+              'SUM(${String.fromCharCode(65 + c)}1:${String.fromCharCode(65 + c)}$r)'),
+          yellow);
+      sheet.setColumnWidth(c, 16);
+    }
+    sheet.setColumnWidth(0, 24);
   }
 
   void _buildSummarySheet({
@@ -327,7 +442,8 @@ class ExcelExportService {
       sheet,
       0,
       0,
-      TextCellValue('ملخص التحصيل حسب المنفذ — ${report.filter.range.arabicDescription}'),
+      TextCellValue(
+          'ملخص التحصيل حسب المنفذ — ${report.filter.range.arabicDescription}'),
       titleStyle,
     );
     for (var c = 1; c < headers.length; c++) {
@@ -485,7 +601,8 @@ class ExcelExportService {
       sheet,
       0,
       0,
-      TextCellValue('ملخص التحصيل حسب الوردية — ${report.filter.range.arabicDescription}'),
+      TextCellValue(
+          'ملخص التحصيل حسب الوردية — ${report.filter.range.arabicDescription}'),
       titleStyle,
     );
     for (var c = 1; c < headers.length; c++) {
@@ -585,7 +702,8 @@ class ExcelExportService {
       sheet,
       0,
       0,
-      TextCellValue('التجميع اليومي للتحصيل — ${report.filter.range.arabicDescription}'),
+      TextCellValue(
+          'التجميع اليومي للتحصيل — ${report.filter.range.arabicDescription}'),
       titleStyle,
     );
     for (var c = 1; c < headers.length; c++) {
@@ -711,7 +829,8 @@ class ExcelExportService {
       sheet,
       0,
       0,
-      TextCellValue('تفاصيل سجلات التحصيل — ${report.filter.range.arabicDescription}'),
+      TextCellValue(
+          'تفاصيل سجلات التحصيل — ${report.filter.range.arabicDescription}'),
       titleStyle,
     );
     for (var c = 1; c < headers.length; c++) {
