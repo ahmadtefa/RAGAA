@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20261120210851
+Start time: 20261120222832
 Username: runnervmbpeip\runneradmin
 RunAs User: runnervmbpeip\runneradmin
 Configuration Name: 
 Machine: runnervmbpeip (Microsoft Windows NT 10.0.26100.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\bbcc59ee-f559-4fc5-b269-ff4bc954b4be.ps1'
-Process ID: 8836
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\ca6a4901-9665-49bc-9157-dd686d733d26.ps1'
+Process ID: 872
 PSVersion: 7.6.10
 PSEdition: Core
 GitCommitId: 7.6.10
@@ -27,16 +27,16 @@ D:\a\_temp\RAGAA-installed\file_selector_windows_plugin.dll 109568
 D:\a\_temp\RAGAA-installed\flutter_windows.dll              21332480
 D:\a\_temp\RAGAA-installed\pdfium.dll                       4749824
 D:\a\_temp\RAGAA-installed\printing_plugin.dll              137216
-D:\a\_temp\RAGAA-installed\ragaa.exe                        92672
+D:\a\_temp\RAGAA-installed\ragaa.exe                        98304
 D:\a\_temp\RAGAA-installed\README-Windows.txt               1765
 D:\a\_temp\RAGAA-installed\share_plus_plugin.dll            137216
 D:\a\_temp\RAGAA-installed\sqlite3_flutter_libs_plugin.dll  9728
 D:\a\_temp\RAGAA-installed\sqlite3.dll                      1496064
 D:\a\_temp\RAGAA-installed\unins000.dat                     6963
-D:\a\_temp\RAGAA-installed\unins000.exe                     4398338
+D:\a\_temp\RAGAA-installed\unins000.exe                     4403458
 D:\a\_temp\RAGAA-installed\url_launcher_windows_plugin.dll  97792
 D:\a\_temp\RAGAA-installed\data\flutter_assets
-D:\a\_temp\RAGAA-installed\data\app.so                      10650584
+D:\a\_temp\RAGAA-installed\data\app.so                      10732504
 D:\a\_temp\RAGAA-installed\data\icudtl.dat                  864880
 
 Start menu folder: C:\Users\runneradmin\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\RAGAA
@@ -51,5 +51,5 @@ Uninstaller exit code: 0
 Installer smoke test passed.
 **********************
 PowerShell transcript end
-End time: 20261120210901
+End time: 20261120222841
 **********************
