@@ -13,7 +13,7 @@ Archive:  artifacts/RAGAA-release.apk
      7784  1981-01-01 01:01   lib/arm64-v8a/libdatastore_shared_counter.so
  11346352  1981-01-01 01:01   lib/arm64-v8a/libflutter.so
   1526536  1981-01-01 01:01   lib/arm64-v8a/libsqlite3.so
- 10912328  1981-01-01 01:01   lib/armeabi-v7a/libapp.so
+ 10928712  1981-01-01 01:01   lib/armeabi-v7a/libapp.so
     81444  1981-01-01 01:01   lib/armeabi-v7a/libdartjni.so
      5916  1981-01-01 01:01   lib/armeabi-v7a/libdatastore_shared_counter.so
   8458404  1981-01-01 01:01   lib/armeabi-v7a/libflutter.so
@@ -31,7 +31,7 @@ Archive:  artifacts/RAGAA-release.apk
    431116  1981-01-01 01:01   assets/flutter_assets/assets/fonts/Amiri-Regular.ttf
     59988  1981-01-01 01:01   assets/flutter_assets/assets/fonts/Tajawal-Bold.ttf
     60364  1981-01-01 01:01   assets/flutter_assets/assets/fonts/Tajawal-Regular.ttf
-    11904  1981-01-01 01:01   assets/flutter_assets/fonts/MaterialIcons-Regular.otf
+    11972  1981-01-01 01:01   assets/flutter_assets/fonts/MaterialIcons-Regular.otf
     21784  1981-01-01 01:01   assets/flutter_assets/shaders/ink_sparkle.frag
     17616  1981-01-01 01:01   assets/flutter_assets/shaders/stretch_effect.frag
      1728  1981-01-01 01:01   DebugProbesKt.bin
@@ -46,7 +46,7 @@ OK  assets/flutter_assets/AssetManifest.bin
 OK  AndroidManifest.xml
 --- signature ---
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: 17ac6b590e426332bc337c978dae068ebc7ab043c9185f72b661e868ca474ae0
-V2 Signer: certificate SHA-1 digest: 20a5aeb732f6eab6cd3ba17cd34f6b8587fa6f14
-V2 Signer: certificate MD5 digest: 8357095034dd12bbed582d9bf8f2b1d7
--rw-r--r-- 1 runner runner 72570549 Nov 20 22:30 artifacts/RAGAA-release.apk
+V2 Signer: certificate SHA-256 digest: d7961ee876256593fc1500d7b380276d14e290c20cf5dd8581a5041ab9037b15
+V2 Signer: certificate SHA-1 digest: 7de83b266ca79ae9cc63509e702df351f4f73588
+V2 Signer: certificate MD5 digest: bd9f8bbbd913fe940a227c66ba1a3e31
+-rw-r--r-- 1 runner runner 72586973 Nov 20 23:37 artifacts/RAGAA-release.apk
