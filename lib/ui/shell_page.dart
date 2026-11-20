@@ -76,17 +76,36 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
 
   /// One tap from anywhere to the form that matters most: recording today's
   /// collection. The operator never has to find the right tab first.
+  Future<void> _openNewCollection() async {
+    final saved = await CollectionFormDialog.show(
+      context,
+      controller: widget.controller,
+    );
+    if (saved != null && mounted) {
+      setState(() => _selectedIndex = 1);
+    }
+  }
+
+  /// Desktop only: the window is wide enough for a floating button that sits
+  /// beside the content. On phones the same action lives in the app bar so it
+  /// can never cover a row of data or a button.
   Widget _newCollectionFab() {
     return FloatingActionButton.extended(
       key: const Key('shell_new_collection'),
-      onPressed: () async {
-        final saved = await CollectionFormDialog.show(context, controller: widget.controller);
-        if (saved != null && mounted) {
-          setState(() => _selectedIndex = 1);
-        }
-      },
+      onPressed: _openNewCollection,
       icon: const Icon(Icons.add_card),
       label: const Text('تحصيل جديد'),
+    );
+  }
+
+  /// Phone replacement for the floating button: an always-reachable app-bar
+  /// action with its own slot above the content.
+  Widget _newCollectionAppBarAction() {
+    return IconButton(
+      key: const Key('shell_new_collection'),
+      tooltip: 'تحصيل جديد',
+      icon: const Icon(Icons.add_card),
+      onPressed: _openNewCollection,
     );
   }
 
@@ -263,10 +282,14 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
         // Compact / Android layout
         return Scaffold(
           key: _scaffoldKey,
-          floatingActionButton:
-              _selectedIndex == 0 ? null : _newCollectionFab(),
+          // No floating button on phones: it used to cover the last row of
+          // data. The same action sits in the app bar instead (except on the
+          // dashboard, which already has its own «تسجيل تحصيل» button).
           appBar: AppBar(
             title: Text('RAGAA | ${_kNavItems[_selectedIndex].label}'),
+            actions: [
+              if (_selectedIndex != 0) _newCollectionAppBarAction(),
+            ],
           ),
           drawer: Drawer(
             child: SafeArea(

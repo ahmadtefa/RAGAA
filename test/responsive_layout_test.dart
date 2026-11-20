@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:ragaa/core/app_theme.dart';
+import 'package:ragaa/core/formatters.dart';
 import 'package:ragaa/data/app_database.dart';
 import 'package:ragaa/data/backup_service.dart';
 import 'package:ragaa/data/ragaa_repository.dart';
@@ -63,8 +64,14 @@ void main() {
     );
     await controller.initialize();
     // Seed the real demo dataset so the screens are laid out with realistic
-    // Arabic outlet names and amounts instead of empty placeholders.
-    await JournalDemoDataset.seed(repo);
+    // Arabic outlet names and amounts instead of empty placeholders — for both
+    // the fixed review date and today, so every list is populated.
+    final outletIds = await JournalDemoDataset.seed(repo);
+    await JournalDemoDataset.seedCollections(
+      repo,
+      outletIds,
+      date: dateKey(DateTime.now()),
+    );
     await controller.refreshAll();
   });
 
@@ -267,7 +274,10 @@ void main() {
         );
         await settle(tester);
         expectNoLayoutError(tester, '$label / collections tab');
+        // The action lives in the app bar on phones, so nothing floats over
+        // the data any more, and the button is still one tap away.
         expect(find.byKey(const Key('shell_new_collection')), findsOneWidget);
+        expect(find.byType(FloatingActionButton), findsNothing);
         expect(find.byKey(const Key('collections_new_btn')), findsOneWidget);
       }
     }

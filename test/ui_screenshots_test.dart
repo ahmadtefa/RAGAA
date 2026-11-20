@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:ragaa/core/formatters.dart';
 import 'package:ragaa/data/app_database.dart';
 import 'package:ragaa/data/backup_service.dart';
 import 'package:ragaa/data/ragaa_repository.dart';
@@ -42,6 +43,9 @@ void main() {
         'assets/fonts/Tajawal-Regular.ttf',
         'assets/fonts/Tajawal-Bold.ttf',
       ],
+      // The Material icon font is not part of the app bundle, so load it from
+      // the Flutter SDK bundle; otherwise every icon shows as an empty box.
+      'MaterialIcons': <String>['fonts/MaterialIcons-Regular.otf'],
     }.entries) {
       final loader = FontLoader(entry.key);
       var loadedAny = false;
@@ -84,7 +88,14 @@ void main() {
       ),
     );
     await controller.initialize();
-    await JournalDemoDataset.seed(repo);
+    final outletIds = await JournalDemoDataset.seed(repo);
+    // Today's shift totals too, so the dashboard shows real amounts instead of
+    // an empty 0.00 screenshot.
+    await JournalDemoDataset.seedCollections(
+      repo,
+      outletIds,
+      date: dateKey(DateTime.now()),
+    );
     await controller.refreshAll();
   });
 

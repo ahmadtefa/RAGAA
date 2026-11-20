@@ -14,6 +14,10 @@ const double kCompactMaxWidth = 600;
 /// Tablet / desktop breakpoint (side-by-side layouts are safe from here).
 const double kExpandedMinWidth = 900;
 
+/// Width from which the shell switches to the desktop rail layout and keeps a
+/// floating action button beside the content.
+const double kDesktopLayoutMinWidth = 860;
+
 /// True when the current screen is phone-sized.
 bool isCompactWidth(
   BuildContext context, {
@@ -37,7 +41,10 @@ EdgeInsets responsivePagePadding(
 }) {
   final width = MediaQuery.sizeOf(context).width;
   final gap = width < 400 ? 12.0 : (width < kCompactMaxWidth ? 16.0 : 20.0);
-  final bottom = withFabInset && width < kExpandedMinWidth ? fabInset : gap;
+  // The floating button only exists in the desktop layout, so only that layout
+  // reserves room under the content for it.
+  final bottom =
+      withFabInset && width >= kDesktopLayoutMinWidth ? fabInset : gap;
   return EdgeInsets.fromLTRB(gap, gap, gap, bottom);
 }
 

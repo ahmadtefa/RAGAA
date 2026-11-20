@@ -66,8 +66,8 @@ class JournalDemoDataset {
     },
   };
 
-  /// Creates the demo outlets (in printed order) and their collections.
-  /// Returns `outlet name -> outlet id`.
+  /// Creates the demo outlets (in printed order) and their collections for the
+  /// fixed review date. Returns `outlet name -> outlet id`.
   static Future<Map<String, String>> seed(RagaaRepository repo) async {
     final ids = <String, String>{};
     for (final spec in outlets) {
@@ -75,13 +75,24 @@ class JournalDemoDataset {
       ids[spec.$1] = created.id;
     }
 
+    await seedCollections(repo, ids, date: operationalDate);
+    return ids;
+  }
+
+  /// Re-creates the same demo amounts for another operational date, so live UI
+  /// tests run against populated lists instead of the empty state.
+  static Future<void> seedCollections(
+    RagaaRepository repo,
+    Map<String, String> ids, {
+    required String date,
+  }) async {
     for (final outletEntry in entries.entries) {
       final outletId = ids[outletEntry.key]!;
       for (final shiftEntry in outletEntry.value.entries) {
         final values = shiftEntry.value;
         await repo.createCollection(
           outletId: outletId,
-          operationalDate: operationalDate,
+          operationalDate: date,
           shiftNumber: shiftEntry.key,
           amounts: CollectionAmounts(
             manualFeesPiastres: values.$1,
@@ -94,6 +105,5 @@ class JournalDemoDataset {
         );
       }
     }
-    return ids;
   }
 }
