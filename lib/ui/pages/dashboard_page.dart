@@ -542,7 +542,13 @@ class _OutletDashboardTile extends StatelessWidget {
               children: [
                 Expanded(child: nameBlock),
                 const SizedBox(width: 10),
-                amount,
+                // Never let the amount push the outlet name off the card.
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: constraints.maxWidth * 0.55,
+                  ),
+                  child: amount,
+                ),
               ],
             );
           },

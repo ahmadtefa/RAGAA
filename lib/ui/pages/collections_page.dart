@@ -529,7 +529,7 @@ class _CollectionsPageState extends State<CollectionsPage> {
                           onPressed: () => _showRecordAuditHistory(rec),
                         ),
                       ];
-                      if (constraints.maxWidth < 520) {
+                      if (constraints.maxWidth < 640) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -549,7 +549,15 @@ class _CollectionsPageState extends State<CollectionsPage> {
                         children: [
                           Expanded(child: data),
                           const SizedBox(width: 12),
-                          amount,
+                          // Cap the amount so a large text scale can never push
+                          // it past the card edge; it scales down only when the
+                          // natural width does not fit.
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: constraints.maxWidth * 0.4,
+                            ),
+                            child: amount,
+                          ),
                           const SizedBox(width: 8),
                           ...actions,
                         ],
