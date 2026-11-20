@@ -507,7 +507,8 @@ class ExcelExportService {
               _journalMoneyStyle);
         } else {
           for (var column = 1; column < journalHeaders.length; column++) {
-            _setCell(sheet, column, row, TextCellValue(''), _journalMoneyStyle);
+            _setCell(sheet, column, row, TextCellValue(''),
+                column == 4 ? _journalScalesStyle : _journalMoneyStyle);
           }
         }
         if (row - firstDataRow >= section.greenRowCount) merge(7, row, 8, row);

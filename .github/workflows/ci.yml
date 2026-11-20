@@ -119,7 +119,7 @@ jobs:
         run: |
           git add review pubspec.lock
           # Flutter refreshes the tracked desktop plugin registrations at pub get.
-          git add -u -- windows/flutter linux/flutter macos/Flutter
+          git ls-files -z -- windows/flutter linux/flutter macos/Flutter | xargs -0 -r git add -u --
           if git diff --cached --quiet; then
             echo "No review sample changes."
             exit 0

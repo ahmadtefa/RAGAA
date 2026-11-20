@@ -152,6 +152,15 @@ class XlsxPrintSetup {
         var patched = _injectSheetProperties(sheetXml);
         patched = _injectFrozenPane(patched, freezeRows: freezeRows);
         patched = _injectPageSetup(patched, landscape: landscape);
+        if (sheetNames[index] == 'اليومية') {
+          patched = patched.replaceFirst(RegExp(r'<pageMargins\b[^>]*/>'),
+              '<pageMargins left="0.28" right="0.28" top="0.23" bottom="0.23" header="0" footer="0"/>');
+          final end = _lastCellRef(patched)?.replaceAll(r'$', '');
+          if (end != null) {
+            patched = patched.replaceFirst(RegExp(r'<dimension\b[^>]*/>'),
+                '<dimension ref="A1:$end"/>');
+          }
+        }
         if (patched != sheetXml) {
           files[sheetPath] = utf8.encode(patched);
           changed = true;
@@ -195,27 +204,22 @@ class XlsxPrintSetup {
     }
   }
 
-  /// Reads the used range of a worksheet from its `<dimension ref="A1:H40"/>`,
-  /// falling back to the maximum cell reference when no dimension is written.
+  /// The Excel encoder may leave the template dimension at A1. Include actual
+  /// cells and merged endpoints when computing the rectangle sent to print.
   static String? _lastCellRef(String sheetXml) {
-    final match =
-        RegExp(r'<dimension\s+ref="([A-Z]+\d+)(?::([A-Z]+\d+))?"')
-            .firstMatch(sheetXml);
-    if (match != null) return match.group(2) ?? match.group(1);
-
-    var maxColumn = 0;
+    var maxColumn = -1;
     var maxRow = 0;
-    var found = false;
-    for (final cell
-        in RegExp(r'<c\s+r="([A-Z]+)(\d+)"').allMatches(sheetXml)) {
-      final column = _columnIndex(cell.group(1)!);
+    final pattern = RegExp(
+      r'<(?:c|mergeCell)\b[^>]*?\b(?:r|ref)="(?:[A-Z]+\d+:)?([A-Z]+)(\d+)"',
+    );
+    for (final cell in pattern.allMatches(sheetXml)) {
+      final col = _columnIndex(cell.group(1)!);
       final row = int.parse(cell.group(2)!);
-      if (!found || column > maxColumn) maxColumn = column;
-      if (!found || row > maxRow) maxRow = row;
-      found = true;
+      if (col > maxColumn) maxColumn = col;
+      if (row > maxRow) maxRow = row;
     }
-    if (!found) return null;
-    return '${_columnLetter(maxColumn)}$maxRow';
+    if (maxColumn < 0) return null;
+    return '\$${_columnLetter(maxColumn)}\$$maxRow';
   }
 
   static int _columnIndex(String letters) {

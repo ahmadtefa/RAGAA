@@ -311,6 +311,8 @@ void main() {
     expect(workbookXml, isNotNull);
     expect(sheetXml, isNotNull);
     expect(workbookXml, contains('_xlnm.Print_Area'));
+    expect(workbookXml, contains('\$A\$1:\$I\$${grandRow + 1}'));
+    expect(sheetXml, contains('ref="A1:I${grandRow + 1}"'));
     expect(workbookXml, contains('fullCalcOnLoad="1"'));
     expect(sheetXml, contains('orientation="landscape"'));
     expect(sheetXml, contains('fitToWidth="1"'));
