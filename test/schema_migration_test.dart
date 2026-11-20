@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:ragaa/data/app_database.dart';
 import 'package:ragaa/data/ragaa_repository.dart';
-import 'package:ragaa/models/daily_journal.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3/sqlite3.dart' as raw;
 
@@ -200,7 +199,7 @@ void main() {
     final repo = RagaaRepository(first);
     await repo.createOutlet(name: 'منفذ أ', shiftCount: 2);
     await repo.createOutlet(name: 'منفذ ب', shiftCount: 3);
-    await repo.close();
+    await first.close();
 
     // Simulate an older installation: drop sort_order and reset the version.
     final legacy = raw.sqlite3.open(dbPath);

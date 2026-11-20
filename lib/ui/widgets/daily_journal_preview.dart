@@ -1,7 +1,6 @@
 // ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 
-import '../../core/app_theme.dart';
 import '../../core/formatters.dart';
 import '../../models/daily_journal.dart';
 
@@ -35,22 +34,6 @@ class DailyJournalPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!journal.hasData) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderSubtle),
-        ),
-        child: Text(
-          'لا توجد تحصيلات مسجّلة في ${journal.operationalDate}',
-          style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-        ),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -78,6 +61,23 @@ class DailyJournalPreview extends StatelessWidget {
             ],
           ),
         ),
+        if (!journal.hasData) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFCD34D)),
+            ),
+            child: Text(
+              'لا توجد تحصيلات مسجّلة في ${journal.operationalDate} — '
+              'الجدول المعروض هو نموذج اليومية الفارغ بكل منافذه ووردياته.',
+              style: const TextStyle(fontSize: 12.5, color: Color(0xFF92400E)),
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         Expanded(
           child: SingleChildScrollView(

@@ -434,7 +434,7 @@ class ExcelExportService {
   );
 
   static final CellStyle _journalSubtleStyle = CellStyle(
-    fontSize: 9.5,
+    fontSize: 10,
     fontColorHex: ExcelColor.fromHexString('#475569'),
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,

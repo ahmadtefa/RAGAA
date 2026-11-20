@@ -234,7 +234,7 @@ class DailyJournalPdfService {
     final rows = <pw.TableRow>[
       _headerRow(),
       for (final section in journal.sections) ...[
-        _bandRow('${section.shiftLabel}'),
+        _bandRow(section.shiftLabel),
         for (final row in section.rows) _dataRow(row),
         _totalsRow(
           'إجمالي ${defaultShiftLabel(section.shiftNumber)}',

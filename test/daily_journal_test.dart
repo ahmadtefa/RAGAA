@@ -102,7 +102,7 @@ void main() {
         ],
       );
 
-      final row = journal.sections.single.rows.single;
+      final row = journal.sections.first.rows.single;
       expect(row.amounts.scalesTotalPiastres, 450000);
       expect(row.amounts.totalFeesPiastres, 550000);
       expect(row.amounts.generalTotalPiastres, 1000000);
@@ -124,7 +124,7 @@ void main() {
           ),
         ],
       );
-      final amounts = journal.sections.single.rows.single.amounts;
+      final amounts = journal.sections.first.rows.single.amounts;
       // 2000 + 3000 must NOT be used anywhere.
       expect(amounts.manualFeesPiastres + amounts.automaticFeesPiastres, 500000);
       expect(amounts.totalFeesPiastres, 550000);
@@ -144,7 +144,7 @@ void main() {
           ),
         ],
       );
-      final amounts = journal.sections.single.rows.single.amounts;
+      final amounts = journal.sections.first.rows.single.amounts;
       expect(amounts.nfcPiastres, 0);
       expect(amounts.visaPiastres, 0);
       expect(amounts.scalesTotalPiastres, 400000);
@@ -266,17 +266,20 @@ void main() {
         journal.sections
             .firstWhere((section) => section.shiftNumber == 3)
             .recordedCount,
-        4,
+        3,
       );
     });
 
-    test('journal for a day without data stays empty and zeroed', () async {
+    test('journal for a day without data keeps the empty paper form', () async {
       await JournalDemoDataset.seed(repo);
       final journal = await repo.buildDailyJournal('2026-11-20');
       expect(journal.hasData, isFalse);
       expect(journal.dayTotals.isZero, isTrue);
       expect(journal.recordedShiftsCount, 0);
-      expect(journal.outletDayTotals, isEmpty);
+      // Every configured outlet is still printed with blank (zero) cells, exactly
+      // like the paper form, and nothing is invented.
+      expect(journal.outletDayTotals.length, JournalDemoDataset.outlets.length);
+      expect(journal.outletDayTotals.every((row) => row.amounts.isZero), isTrue);
     });
 
     test('rejects invalid operational dates', () async {
