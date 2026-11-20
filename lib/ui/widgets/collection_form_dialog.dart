@@ -364,44 +364,43 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
           centerTitle: false,
         ),
         body: SafeArea(
+          bottom: false,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 900;
               final horizontal = wide ? 28.0 : 14.0;
-              return Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: EdgeInsets.fromLTRB(
-                        horizontal,
-                        12,
-                        horizontal,
-                        20,
-                      ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 760),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _shiftSection(theme, editing, today, yesterday),
-                              const SizedBox(height: 14),
-                              _amountsSection(theme, wide),
-                              const SizedBox(height: 14),
-                              _notesSection(theme),
-                            ],
-                          ),
-                        ),
-                      ),
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 20),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _shiftSection(theme, editing, today, yesterday),
+                        const SizedBox(height: 14),
+                        _amountsSection(theme, wide),
+                        const SizedBox(height: 14),
+                        _notesSection(theme),
+                      ],
                     ),
                   ),
-                  _saveBar(theme, scales: scales, wide: wide),
-                ],
+                ),
               );
             },
           ),
+        ),
+        // The save bar is the scaffold's own bottom bar, not a row inside the
+        // body: a snackbar ("تم نسخ المسار", a validation note) then floats
+        // above it instead of covering the button, and the keyboard inset lifts
+        // it clear of the keys rather than hiding it behind them.
+        bottomNavigationBar: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: _saveBar(theme, scales: scales, wide: _wideFor(context)),
         ),
       ),
     );
@@ -780,6 +779,9 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
       ),
     );
   }
+
+  bool _wideFor(BuildContext context) =>
+      MediaQuery.sizeOf(context).width >= 900;
 
   Widget _saveBar(ThemeData theme, {required int scales, required bool wide}) {
     return Container(
