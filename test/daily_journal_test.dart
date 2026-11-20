@@ -165,7 +165,7 @@ void main() {
           ),
         ],
       );
-      final withEpay = journalWithEpay.sections.single.rows.single.amounts;
+      final withEpay = journalWithEpay.sections.first.rows.single.amounts;
       expect(withEpay.generalTotalPiastres, 500000);
       expect(withEpay.scalesTotalPiastres, 400000);
       expect(journal.dayTotals.generalTotalPiastres,

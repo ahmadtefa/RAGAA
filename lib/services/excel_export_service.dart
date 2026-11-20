@@ -1289,9 +1289,13 @@ class ExcelExportService {
         sheet,
         c,
         r,
-        FormulaCellValue(
-          'SUM($letter${firstDataRow + 1}:$letter$r)',
-        ),
+        report.details.isEmpty
+            ? DoubleCellValue(0)
+            : FormulaCellValue(
+                // r is the 0-based totals row index; its Excel row number is
+                // exactly the last data row number, hence the range below.
+                'SUM($letter${firstDataRow + 1}:$letter$r)',
+              ),
         totalMoneyStyle,
       );
     }
@@ -1320,6 +1324,5 @@ class ExcelExportService {
     for (var i = 0; i < widths.length; i++) {
       sheet.setColumnWidth(i, widths[i]);
     }
-  }
   }
 }

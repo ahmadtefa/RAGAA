@@ -214,10 +214,25 @@ void main() {
 
     // Verify details sheet has header + 4 collection rows + totals row.
     final detailsSheet = decoded.tables[ExcelExportService.detailsSheetName]!;
-    final detailsTotal = detailsSheet
+    // The money totals row is made of real SUM formulas over the data rows.
+    final generalTotalCell = detailsSheet
         .cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: 7))
         .value;
-    expect((detailsTotal as DoubleCellValue).value, closeTo(8751.25, 0.0001));
+    expect(generalTotalCell, isA<FormulaCellValue>());
+    expect(
+      (generalTotalCell as FormulaCellValue).formula,
+      'SUM(M4:M7)',
+    );
+    // The same column, summed numerically by hand, must equal the approved
+    // grand total so nothing is double counted between the two exports.
+    var generalSum = 0.0;
+    for (var row = 3; row < 7; row++) {
+      final cell = detailsSheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row))
+          .value;
+      generalSum += (cell as DoubleCellValue).value;
+    }
+    expect(generalSum, closeTo(8751.25, 0.0001));
 
     // The scales column is a real formula (الإجمالي العام − إجمالي الرسوم).
     final scalesCell = detailsSheet
