@@ -1171,6 +1171,7 @@ class ExcelExportService {
     required CellStyle totalTextStyle,
     required CellStyle totalMoneyStyle,
   }) {
+    // Every approved financial field is exported as a real numeric column.
     const headers = [
       'رقم السجل',
       'التاريخ التشغيلي',
@@ -1178,11 +1179,19 @@ class ExcelExportService {
       'رقم الوردية',
       'مسمى الوردية',
       'موعد الوردية',
-      'المبلغ (ج.م)',
+      'الرسوم اليدوية',
+      'الرسوم الآلية',
+      'إجمالي الرسوم',
+      'إجمالي الموازين',
+      'NFC',
+      'VISA',
+      'الإجمالي العام',
       'الحالة',
       'ملاحظات',
       'آخر تحديث',
     ];
+    const firstMoneyColumn = 6;
+    const lastMoneyColumn = 12;
 
     _setCell(
       sheet,
@@ -1205,6 +1214,7 @@ class ExcelExportService {
     }
 
     var r = 3;
+    final firstDataRow = r;
     for (final item in report.details) {
       _setCell(sheet, 0, r, IntCellValue(item.id), centerStyle);
       _setCell(sheet, 1, r, TextCellValue(item.operationalDate), centerStyle);
@@ -1218,26 +1228,49 @@ class ExcelExportService {
         TextCellValue(item.shiftScheduleDisplay),
         centerStyle,
       );
+      _setCell(sheet, 6, r,
+          DoubleCellValue(piastresToUnits(item.manualFeesPiastres)), moneyStyle);
       _setCell(
         sheet,
-        6,
+        7,
         r,
-        DoubleCellValue(piastresToUnits(item.amountPiastres)),
+        DoubleCellValue(piastresToUnits(item.automaticFeesPiastres)),
+        moneyStyle,
+      );
+      _setCell(sheet, 8, r,
+          DoubleCellValue(piastresToUnits(item.totalFeesPiastres)), moneyStyle);
+      _setCell(
+        sheet,
+        9,
+        r,
+        // Computed column: الإجمالي العام − إجمالي الرسوم.
+        FormulaCellValue('M${r + 1}-I${r + 1}'),
+        moneyStyle,
+      );
+      _setCell(sheet, 10, r,
+          DoubleCellValue(piastresToUnits(item.nfcPiastres)), moneyStyle);
+      _setCell(sheet, 11, r,
+          DoubleCellValue(piastresToUnits(item.visaPiastres)), moneyStyle);
+      _setCell(
+        sheet,
+        12,
+        r,
+        DoubleCellValue(piastresToUnits(item.generalTotalPiastres)),
         moneyStyle,
       );
       _setCell(
         sheet,
-        7,
+        13,
         r,
         TextCellValue(
           item.wasModified ? 'معدّل (نسخة ${item.revision})' : 'أصلي',
         ),
         centerStyle,
       );
-      _setCell(sheet, 8, r, TextCellValue(item.notes), textStyle);
+      _setCell(sheet, 14, r, TextCellValue(item.notes), textStyle);
       _setCell(
         sheet,
-        9,
+        15,
         r,
         TextCellValue(formatTimestamp(item.updatedAt)),
         centerStyle,
@@ -1246,41 +1279,47 @@ class ExcelExportService {
     }
 
     _setCell(sheet, 0, r, TextCellValue('الإجمالي'), totalTextStyle);
-    _setCell(
-      sheet,
-      1,
-      r,
-      TextCellValue('${report.totalEntries} سجل'),
-      totalTextStyle,
-    );
-    for (var c = 2; c <= 5; c++) {
+    _setCell(sheet, 1, r, IntCellValue(report.totalEntries), totalTextStyle);
+    for (var c = 2; c < firstMoneyColumn; c++) {
       _setCell(sheet, c, r, TextCellValue(''), totalTextStyle);
     }
-    _setCell(
-      sheet,
-      6,
-      r,
-      DoubleCellValue(piastresToUnits(report.grandTotalPiastres)),
-      totalMoneyStyle,
-    );
-    for (var c = 7; c < headers.length; c++) {
+    for (var c = firstMoneyColumn; c <= lastMoneyColumn; c++) {
+      final letter = _columnLetter(c);
+      _setCell(
+        sheet,
+        c,
+        r,
+        FormulaCellValue(
+          'SUM($letter${firstDataRow + 1}:$letter$r)',
+        ),
+        totalMoneyStyle,
+      );
+    }
+    for (var c = lastMoneyColumn + 1; c < headers.length; c++) {
       _setCell(sheet, c, r, TextCellValue(''), totalTextStyle);
     }
 
-    const widths = [
-      12.0,
-      18.0,
-      24.0,
-      13.0,
-      18.0,
-      18.0,
-      20.0,
-      16.0,
-      28.0,
-      20.0,
+    const widths = <double>[
+      12,
+      18,
+      24,
+      13,
+      18,
+      18,
+      18,
+      18,
+      18,
+      20,
+      14,
+      14,
+      20,
+      16,
+      28,
+      20,
     ];
     for (var i = 0; i < widths.length; i++) {
       sheet.setColumnWidth(i, widths[i]);
     }
+  }
   }
 }

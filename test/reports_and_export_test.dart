@@ -215,8 +215,15 @@ void main() {
     // Verify details sheet has header + 4 collection rows + totals row.
     final detailsSheet = decoded.tables[ExcelExportService.detailsSheetName]!;
     final detailsTotal = detailsSheet
-        .cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 7))
+        .cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: 7))
         .value;
     expect((detailsTotal as DoubleCellValue).value, closeTo(8751.25, 0.0001));
+
+    // The scales column is a real formula (الإجمالي العام − إجمالي الرسوم).
+    final scalesCell = detailsSheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: 3))
+        .value;
+    expect(scalesCell, isA<FormulaCellValue>());
+    expect((scalesCell as FormulaCellValue).formula, 'M4-I4');
   });
 }

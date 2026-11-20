@@ -456,6 +456,28 @@ class _CollectionsPageState extends State<CollectionsPage> {
                                 color: Color(0xFF64748B),
                               ),
                             ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                _amountChip('يدوي', rec.manualFeesPiastres),
+                                _amountChip('آلي', rec.automaticFeesPiastres),
+                                _amountChip('إجمالي الرسوم', rec.totalFeesPiastres),
+                                _amountChip(
+                                  'الموازين',
+                                  rec.scalesTotalPiastres,
+                                  emphasised: true,
+                                ),
+                                _amountChip('NFC', rec.nfcPiastres),
+                                _amountChip('VISA', rec.visaPiastres),
+                                _amountChip(
+                                  'الإجمالي',
+                                  rec.generalTotalPiastres,
+                                  emphasised: true,
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -489,4 +511,28 @@ class _CollectionsPageState extends State<CollectionsPage> {
       ],
     );
   }
+
+  /// Compact amount chip so every approved financial field stays visible on the
+  /// collection list (desktop and phone).
+  Widget _amountChip(String label, int value, {bool emphasised = false}) =>
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: emphasised
+              ? AppTheme.brandPrimary.withValues(alpha: 0.08)
+              : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '$label: ${formatMoney(value)}',
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: emphasised ? FontWeight.w700 : FontWeight.w500,
+            color: emphasised
+                ? AppTheme.brandPrimary
+                : const Color(0xFF334155),
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      );
 }
