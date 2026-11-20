@@ -29,7 +29,7 @@ Try `flutter pub outdated` for more information.
 00:00 +1: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
 00:00 +2: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
 review samples: 8 outlets, 18 recorded shifts, grand total 8190000 piastres
-00:02 +3: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
+00:01 +3: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
 00:02 +4: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: exports valid Arabic RTL PDF and multi-sheet RTL Excel (.xlsx)
 00:08 +5: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: validates operational dates, shift times, and Arabic/Latin money
 00:08 +6: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
@@ -46,14 +46,13 @@ review samples: 8 outlets, 18 recorded shifts, grand total 8190000 piastres
 00:14 +17: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
 00:14 +18: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
 00:14 +19: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:15 +20: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
-00:15 +21: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:14 +20: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
+00:14 +21: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
 00:15 +22: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: renders cleanly on compact Android screen size
-00:15 +23: loading /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart
 00:16 +23: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates outlets with 2 or 3 independent shifts and custom schedules
-00:17 +24: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: stores independent daily journal fields and derives scales without double counting payments
-00:17 +25: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: updating shift count (3 -> 2 -> 3) and shift times preserves all historical data
-00:17 +26: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: strictly prevents duplicate collection and logs all edits in audit_logs
-00:17 +27: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: migrates legacy Phase 1 SharedPreferences data into SQLite once
-00:17 +28: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates verified backups, rejects corrupted files, and restores safely with safety snapshot
+00:16 +24: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: stores independent daily journal fields and derives scales without double counting payments
+00:16 +25: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: updating shift count (3 -> 2 -> 3) and shift times preserves all historical data
+00:16 +26: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: strictly prevents duplicate collection and logs all edits in audit_logs
+00:16 +27: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: migrates legacy Phase 1 SharedPreferences data into SQLite once
+00:16 +28: /home/runner/work/RAGAA/RAGAA/test/database_and_backup_test.dart: creates verified backups, rejects corrupted files, and restores safely with safety snapshot
 00:18 +29: All tests passed!
