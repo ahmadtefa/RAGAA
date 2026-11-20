@@ -133,6 +133,16 @@ void main() {
       find.byKey(const Key('collection_amount_field')),
       '1500.50',
     );
+    final fees = find.byWidgetPredicate((w) =>
+        w is TextField && w.decoration?.labelText == 'إجمالي الرسوم (مستقل)');
+    await tester.enterText(fees, '500.25');
+    await tester.pump();
+    expect(find.text('1000.25'), findsOneWidget);
+    await tester.enterText(fees, '500.123');
+    await tester.tap(find.byKey(const Key('collection_save_button')));
+    await tester.pump();
+    expect(find.text('أدخل مبالغ صحيحة بحد أقصى رقمين عشريين'), findsOneWidget);
+    await tester.enterText(fees, '500.25');
     await tester.tap(find.byKey(const Key('collection_save_button')));
     await pumpWithDb(tester);
 

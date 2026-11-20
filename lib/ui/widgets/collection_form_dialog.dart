@@ -174,16 +174,22 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
   }
 
   Future<void> _submit() async {
+    if (_saving) return;
+    int? amountOrZero(TextEditingController field) =>
+        field.text.trim().isEmpty ? 0 : tryParsePiastres(field.text);
     final piastres = tryParsePiastres(_amountCtrl.text);
-    final manual = tryParsePiastres(_manualFeesCtrl.text) ?? 0;
-    final automatic = tryParsePiastres(_automaticFeesCtrl.text) ?? 0;
-    final totalFees = tryParsePiastres(_totalFeesCtrl.text) ?? 0;
-    final nfc = tryParsePiastres(_nfcCtrl.text) ?? 0;
-    final visa = tryParsePiastres(_visaCtrl.text) ?? 0;
-    if (piastres == null || piastres < totalFees) {
-      setState(() {
-        _errorText = 'أدخل مبلغًا صحيحًا بالجنيه (بحد أقصى رقمين عشريين)';
-      });
+    final manual = amountOrZero(_manualFeesCtrl);
+    final automatic = amountOrZero(_automaticFeesCtrl);
+    final totalFees = amountOrZero(_totalFeesCtrl);
+    final nfc = amountOrZero(_nfcCtrl);
+    final visa = amountOrZero(_visaCtrl);
+    if (piastres == null || manual == null || automatic == null ||
+        totalFees == null || nfc == null || visa == null) {
+      setState(() => _errorText = 'أدخل مبالغ صحيحة بحد أقصى رقمين عشريين');
+      return;
+    }
+    if (piastres < totalFees) {
+      setState(() => _errorText = 'إجمالي الرسوم أكبر من الإجمالي العام');
       return;
     }
     final amounts = CollectionAmounts(
@@ -483,7 +489,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
                   errorText: _errorText,
                 ),
                 onChanged: (_) => setState(() {}),
-                onSubmitted: (_) => _submit(),
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 12),
               Row(children: [
@@ -550,6 +556,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
   Widget _amountField(TextEditingController controller, String label) =>
       TextField(
         controller: controller,
+        textInputAction: TextInputAction.next,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         onChanged: (_) => setState(() {}),
         decoration: InputDecoration(
@@ -560,14 +567,13 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
     final general = tryParsePiastres(_amountCtrl.text) ?? 0;
     final fees = tryParsePiastres(_totalFeesCtrl.text) ?? 0;
     final scales = general - fees;
-    return TextFormField(
-      readOnly: true,
-      initialValue: formatEditableAmount(scales < 0 ? 0 : scales),
+    return InputDecorator(
       decoration: const InputDecoration(
         labelText: 'إجمالي الموازين (محسوب)',
         suffixText: 'ج.م',
         prefixIcon: Icon(Icons.calculate_outlined),
       ),
+      child: Text(formatEditableAmount(scales)),
     );
   }
 }
