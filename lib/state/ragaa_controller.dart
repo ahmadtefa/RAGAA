@@ -268,7 +268,10 @@ class RagaaController extends ChangeNotifier {
     notifyListeners();
     try {
       final file = await pdfExportService.exportReportToFile(report, path);
-      return file.path;
+      return _deliverSaved(
+        file.path,
+        mimeType: 'application/pdf',
+      );
     } finally {
       isBusy = false;
       notifyListeners();
@@ -297,7 +300,10 @@ class RagaaController extends ChangeNotifier {
     notifyListeners();
     try {
       final file = await excelExportService.exportReportToFile(report, path);
-      return file.path;
+      return _deliverSaved(
+        file.path,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
     } finally {
       isBusy = false;
       notifyListeners();
@@ -320,8 +326,44 @@ class RagaaController extends ChangeNotifier {
     final saved = asPdf
         ? await exportReportPdf(report, overridePath: targetPath)
         : await exportReportExcel(report, overridePath: targetPath);
-    return saved!;
+    return saved ?? targetPath;
   }
+
+  /// Hands a finished file to the operator.
+  ///
+  /// On Windows and Linux the file is already at the path the operator chose in
+  /// the Save-as dialog, so this only returns it. On Android the bytes are
+  /// written to the program's exports folder first, and this opens the system
+  /// dialog that copies them to the folder and name the operator picks — which
+  /// is the only way to save there without asking for a storage-wide
+  /// permission. A cancelled dialog returns `null`, so the screens can say
+  /// "لم يتم الحفظ" instead of pretending the file was saved.
+  Future<String?> _deliverSaved(
+    String writtenPath, {
+    required String mimeType,
+  }) async {
+    final delivered = await fileDialogHelper.deliverToChosenLocation(
+      writtenPath: writtenPath,
+      fileName: p.basename(writtenPath),
+      mimeType: mimeType,
+    );
+    lastSavedLocalPath = writtenPath;
+    lastSavedPath = delivered;
+    return delivered;
+  }
+
+  /// The place the last saved export landed, for the banner that offers to open
+  /// it, reveal its folder or share it.
+  String? lastSavedPath;
+
+  /// The same file as it exists inside the program's own folder. On Android the
+  /// saved location is a document URI, which the share sheet cannot read, so the
+  /// local copy is what gets shared.
+  String? lastSavedLocalPath;
+
+  /// Opens a saved export with the program the system associates with it.
+  Future<bool> openSavedFile(String pathOrUri) =>
+      FileDialogHelper.openFileWithSystem(pathOrUri);
 
   // ---------------------------------------------------------------------------
   // Daily journal (اليومية)
@@ -358,7 +400,10 @@ class RagaaController extends ChangeNotifier {
         journal,
         path,
       );
-      return file.path;
+      return _deliverSaved(
+        file.path,
+        mimeType: 'application/pdf',
+      );
     } finally {
       isBusy = false;
       notifyListeners();
@@ -382,7 +427,10 @@ class RagaaController extends ChangeNotifier {
     notifyListeners();
     try {
       final file = await excelExportService.exportJournalToFile(journal, path);
-      return file.path;
+      return _deliverSaved(
+        file.path,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
     } finally {
       isBusy = false;
       notifyListeners();

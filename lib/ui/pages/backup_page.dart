@@ -165,7 +165,10 @@ class _BackupPageState extends State<BackupPage> {
           SavedFileBanner(
             label: _bannerLabel ?? 'المسار:',
             filePath: _bannerPath!,
-            onShare: () => widget.controller.shareFile(_bannerPath!),
+            onOpen: () => widget.controller.openSavedFile(_bannerPath!),
+            onShare: () => widget.controller.shareFile(
+              widget.controller.lastSavedLocalPath ?? _bannerPath!,
+            ),
             onDismiss: () => setState(() => _bannerPath = null),
           ),
         ],

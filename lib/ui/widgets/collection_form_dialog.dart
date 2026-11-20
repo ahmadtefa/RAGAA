@@ -39,14 +39,19 @@ class CollectionFormDialog extends StatefulWidget {
     int? initialShiftNumber,
     DateTime? initialDate,
   }) {
-    return showDialog<CollectionRecord>(
-      context: context,
-      builder: (_) => CollectionFormDialog(
-        controller: controller,
-        editingRecord: editingRecord,
-        initialOutletId: initialOutletId,
-        initialShiftNumber: initialShiftNumber,
-        initialDate: initialDate,
+    // A collection is entered one-handed, standing at the counter: the form
+    // takes the whole screen instead of a dialog that a phone keyboard would
+    // swallow, and it slides up like every other full-screen task.
+    return Navigator.of(context).push<CollectionRecord>(
+      MaterialPageRoute<CollectionRecord>(
+        fullscreenDialog: true,
+        builder: (_) => CollectionFormDialog(
+          controller: controller,
+          editingRecord: editingRecord,
+          initialOutletId: initialOutletId,
+          initialShiftNumber: initialShiftNumber,
+          initialDate: initialDate,
+        ),
       ),
     );
   }
@@ -70,6 +75,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
 
   CollectionRecord? _detectedDuplicate;
   bool _saving = false;
+  bool _dirty = false;
   String? _errorText;
 
   bool get _isEditing => widget.editingRecord != null;
@@ -216,7 +222,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
               ? 'تعديل يدوي لسجل التحصيل'
               : _reasonCtrl.text.trim(),
         );
-        if (mounted) Navigator.of(context).pop(updated);
+        if (mounted) _finish(updated);
         return;
       }
 
@@ -228,7 +234,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
         amounts: amounts,
         notes: _notesCtrl.text,
       );
-      if (mounted) Navigator.of(context).pop(created);
+      if (mounted) _finish(created);
     } on DuplicateCollectionException catch (dup) {
       if (!mounted) return;
       setState(() {
@@ -251,7 +257,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
               : _notesCtrl.text,
           reason: confirmReason,
         );
-        if (mounted) Navigator.of(context).pop(updated);
+        if (mounted) _finish(updated);
       } on RagaaException catch (e) {
         if (mounted) {
           setState(() {
@@ -290,266 +296,542 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
     );
   }
 
+  void _markDirty() {
+    _dirty = true;
+  }
+
+  /// Leaves the screen with a result, once the widget tree agrees that it may
+  /// close: the unsaved-data guard reads `_dirty` during the next build, so the
+  /// pop is queued behind that build instead of fighting the guard.
+  void _finish(CollectionRecord? result) {
+    setState(() {
+      _dirty = false;
+      _saving = false;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).pop(result);
+    });
+  }
+
+  Future<bool> _confirmDiscard() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('خروج دون حفظ؟'),
+        content: const Text(
+          'الأرقام التي أدخلتها لم تُحفظ بعد. إن خرجت الآن ستُفقد هذه البيانات.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('متابعة الإدخال'),
+          ),
+          FilledButton(
+            key: const Key('discard_entry_button'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('خروج دون حفظ'),
+          ),
+        ],
+      ),
+    );
+    return leave ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final editing = widget.editingRecord;
     final today = dateOnly(DateTime.now());
     final yesterday = DateTime(today.year, today.month, today.day - 1);
+    final general = tryParsePiastres(_amountCtrl.text) ?? 0;
+    final fees = tryParsePiastres(_totalFeesCtrl.text) ?? 0;
+    final scales = general - fees;
 
-    return AlertDialog(
-      title: Text(
-        _isEditing ? 'تعديل تحصيل وردية' : 'تسجيل تحصيل وردية',
-      ),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480, minWidth: 320),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (editing != null) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        editing.outletName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
+    return PopScope(
+      canPop: !_dirty || _saving,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final leave = await _confirmDiscard();
+        if (!mounted || !leave) return;
+        setState(() => _dirty = false);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) Navigator.of(context).pop();
+        });
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_isEditing ? 'تعديل تحصيل وردية' : 'تسجيل تحصيل وردية'),
+          centerTitle: false,
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 900;
+              final horizontal = wide ? 28.0 : 14.0;
+              return Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: EdgeInsets.fromLTRB(
+                        horizontal,
+                        12,
+                        horizontal,
+                        20,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'التاريخ التشغيلي: ${editing.operationalDate} — ${editing.shiftTitle}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF475569),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'المبلغ الحالي: ${formatMoney(editing.amountPiastres, withCurrency: true)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.brandPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-              ] else ...[
-                DropdownButtonFormField<String>(
-                  key: const Key('collection_outlet_dropdown'),
-                  isExpanded: true,
-                  initialValue: _outletId,
-                  decoration: const InputDecoration(
-                    labelText: 'المنفذ',
-                    prefixIcon: Icon(Icons.storefront),
-                  ),
-                  items: _selectableOutlets
-                      .map(
-                        (o) => DropdownMenuItem<String>(
-                          value: o.id,
-                          child: Text('${o.name} (${o.shiftCountArabic})'),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) {
-                    if (v == null) return;
-                    setState(() {
-                      _outletId = v;
-                      final maxShifts = _currentOutlet().shiftCount;
-                      if (_shiftNumber > maxShifts) {
-                        _shiftNumber = 1;
-                      }
-                    });
-                    _checkDuplicate();
-                  },
-                ),
-                const SizedBox(height: 12),
-                Builder(
-                  builder: (context) {
-                    final outlet = _currentOutlet();
-                    final shifts = outlet.activeShifts;
-                    return DropdownButtonFormField<int>(
-                      key: ValueKey(
-                        'shift_${outlet.id}_${outlet.shiftCount}_$_shiftNumber',
-                      ),
-                      isExpanded: true,
-                      initialValue: _shiftNumber,
-                      decoration: const InputDecoration(
-                        labelText: 'الوردية',
-                        prefixIcon: Icon(Icons.access_time),
-                      ),
-                      items: shifts
-                          .map(
-                            (s) => DropdownMenuItem<int>(
-                              value: s.shiftNumber,
-                              child: Text(s.displayLabel),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        if (v == null) return;
-                        setState(() => _shiftNumber = v);
-                        _checkDuplicate();
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'التاريخ التشغيلي للوردية',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _pickOperationalDate,
-                      icon: const Icon(Icons.calendar_month, size: 18),
-                      label: Text(
-                        '${arabicWeekday(_operationalDate)} ${dateKey(_operationalDate)}',
-                      ),
-                    ),
-                    ChoiceChip(
-                      label: const Text('اليوم'),
-                      selected: dateKey(_operationalDate) == dateKey(today),
-                      onSelected: (_) {
-                        setState(() => _operationalDate = today);
-                        _checkDuplicate();
-                      },
-                    ),
-                    ChoiceChip(
-                      label: const Text('أمس'),
-                      selected: dateKey(_operationalDate) == dateKey(yesterday),
-                      onSelected: (_) {
-                        setState(() => _operationalDate = yesterday);
-                        _checkDuplicate();
-                      },
-                    ),
-                  ],
-                ),
-                if (_detectedDuplicate != null) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFBEB),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFFCD34D)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.warning_amber_rounded,
-                          color: AppTheme.warningAmber,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'تنبيه: هذه الوردية مسجلة مسبقًا بمبلغ ${formatMoney(_detectedDuplicate!.amountPiastres, withCurrency: true)}. يمنع النظام التكرار، وعند الحفظ سيطلب تأكيد تعديل المبلغ مع توثيقه في سجل المراجعة.',
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              color: Color(0xFF92400E),
-                            ),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 760),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _shiftSection(theme, editing, today, yesterday),
+                              const SizedBox(height: 14),
+                              _amountsSection(theme, wide),
+                              const SizedBox(height: 14),
+                              _notesSection(theme),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
+                    ),
+                  ),
+                  _saveBar(theme, scales: scales, wide: wide),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionCard(
+    ThemeData theme, {
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _shiftSection(
+    ThemeData theme,
+    CollectionRecord? editing,
+    DateTime today,
+    DateTime yesterday,
+  ) {
+    return _sectionCard(
+      theme,
+      title: 'الوردية والمنفذ',
+      icon: Icons.storefront_outlined,
+      children: [
+        if (editing != null)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  editing.outletName,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'التاريخ التشغيلي: ${editing.operationalDate} — ${editing.shiftTitle}',
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'المبلغ الحالي: ${formatMoney(editing.amountPiastres, withCurrency: true)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else ...[
+          DropdownButtonFormField<String>(
+            key: const Key('collection_outlet_dropdown'),
+            isExpanded: true,
+            initialValue: _outletId,
+            decoration: const InputDecoration(
+              labelText: 'المنفذ',
+              prefixIcon: Icon(Icons.storefront),
+            ),
+            items: _selectableOutlets
+                .map(
+                  (o) => DropdownMenuItem<String>(
+                    value: o.id,
+                    child: Text('${o.name} (${o.shiftCountArabic})'),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) {
+              if (v == null) return;
+              setState(() {
+                _outletId = v;
+                final maxShifts = _currentOutlet().shiftCount;
+                if (_shiftNumber > maxShifts) {
+                  _shiftNumber = 1;
+                }
+              });
+              _markDirty();
+              _checkDuplicate();
+            },
+          ),
+          const SizedBox(height: 12),
+          Builder(
+            builder: (context) {
+              final outlet = _currentOutlet();
+              final shifts = outlet.activeShifts;
+              return DropdownButtonFormField<int>(
+                key: ValueKey(
+                  'shift_${outlet.id}_${outlet.shiftCount}_$_shiftNumber',
+                ),
+                isExpanded: true,
+                initialValue: _shiftNumber,
+                decoration: const InputDecoration(
+                  labelText: 'الوردية',
+                  prefixIcon: Icon(Icons.access_time),
+                ),
+                items: shifts
+                    .map(
+                      (s) => DropdownMenuItem<int>(
+                        value: s.shiftNumber,
+                        child: Text(s.displayLabel),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v == null) return;
+                  setState(() => _shiftNumber = v);
+                  _markDirty();
+                  _checkDuplicate();
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'التاريخ التشغيلي للوردية',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _pickOperationalDate,
+                icon: const Icon(Icons.calendar_month, size: 18),
+                label: Text(
+                  '${arabicWeekday(_operationalDate)} ${dateKey(_operationalDate)}',
+                ),
+              ),
+              ChoiceChip(
+                label: const Text('اليوم'),
+                selected: dateKey(_operationalDate) == dateKey(today),
+                onSelected: (_) {
+                  setState(() => _operationalDate = today);
+                  _markDirty();
+                  _checkDuplicate();
+                },
+              ),
+              ChoiceChip(
+                label: const Text('أمس'),
+                selected: dateKey(_operationalDate) == dateKey(yesterday),
+                onSelected: (_) {
+                  setState(() => _operationalDate = yesterday);
+                  _markDirty();
+                  _checkDuplicate();
+                },
+              ),
+            ],
+          ),
+          if (_detectedDuplicate != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.turquoiseWash,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.warningAmber),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppTheme.warningAmber,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'تنبيه: هذه الوردية مسجلة مسبقًا بمبلغ ${formatMoney(_detectedDuplicate!.amountPiastres, withCurrency: true)}. يمنع النظام التكرار، وعند الحفظ سيطلب تأكيد تعديل المبلغ مع توثيقه في سجل المراجعة.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF92400E),
+                      ),
                     ),
                   ),
                 ],
-                const SizedBox(height: 14),
-              ],
-              TextField(
-                key: const Key('collection_amount_field'),
-                controller: _amountCtrl,
-                autofocus: true,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'إجمالي مبلغ التحصيل (ج.م)',
-                  hintText: '0.00',
-                  suffixText: 'ج.م',
-                  prefixIcon: const Icon(Icons.payments_outlined),
-                  errorText: _errorText,
-                ),
-                onChanged: (_) => setState(() {}),
-                textInputAction: TextInputAction.next,
               ),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(
-                    child: _amountField(_manualFeesCtrl, 'الرسوم اليدوية')),
-                const SizedBox(width: 8),
-                Expanded(
-                    child: _amountField(_automaticFeesCtrl, 'الرسوم الآلية')),
-              ]),
-              const SizedBox(height: 10),
-              _amountField(_totalFeesCtrl, 'إجمالي الرسوم (مستقل)'),
-              const SizedBox(height: 10),
-              _calculatedScalesField(),
-              const SizedBox(height: 10),
-              Row(children: [
-                Expanded(child: _amountField(_nfcCtrl, 'NFC (اختياري)')),
-                const SizedBox(width: 8),
-                Expanded(child: _amountField(_visaCtrl, 'VISA (اختياري)')),
-              ]),
-              const SizedBox(height: 12),
-              TextField(
-                key: const Key('collection_notes_field'),
-                controller: _notesCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'ملاحظات (اختياري)',
-                  prefixIcon: Icon(Icons.sticky_note_2_outlined),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _amountsSection(ThemeData theme, bool wide) {
+    return _sectionCard(
+      theme,
+      title: 'المبالغ',
+      icon: Icons.payments_outlined,
+      children: [
+        TextField(
+          key: const Key('collection_amount_field'),
+          controller: _amountCtrl,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textInputAction: TextInputAction.next,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+          decoration: InputDecoration(
+            labelText: 'إجمالي مبلغ التحصيل (ج.م)',
+            hintText: '0.00',
+            suffixText: 'ج.م',
+            prefixIcon: const Icon(Icons.payments_outlined),
+            errorText: _errorText,
+            errorMaxLines: 3,
+          ),
+          onChanged: (_) {
+            _markDirty();
+            setState(() {});
+          },
+        ),
+        const SizedBox(height: 14),
+        if (wide)
+          Row(
+            children: [
+              Expanded(child: _amountField(_manualFeesCtrl, 'الرسوم اليدوية')),
+              const SizedBox(width: 12),
+              Expanded(child: _amountField(_automaticFeesCtrl, 'الرسوم الآلية')),
+            ],
+          )
+        else ...[
+          _amountField(_manualFeesCtrl, 'الرسوم اليدوية'),
+          const SizedBox(height: 10),
+          _amountField(_automaticFeesCtrl, 'الرسوم الآلية'),
+        ],
+        const SizedBox(height: 10),
+        _amountField(_totalFeesCtrl, 'إجمالي الرسوم (مستقل)'),
+        const SizedBox(height: 14),
+        _computedScales(theme),
+        const SizedBox(height: 14),
+        if (wide)
+          Row(
+            children: [
+              Expanded(child: _amountField(_nfcCtrl, 'NFC (اختياري)')),
+              const SizedBox(width: 12),
+              Expanded(child: _amountField(_visaCtrl, 'VISA (اختياري)')),
+            ],
+          )
+        else ...[
+          _amountField(_nfcCtrl, 'NFC (اختياري)'),
+          const SizedBox(height: 10),
+          _amountField(_visaCtrl, 'VISA (اختياري)'),
+        ],
+      ],
+    );
+  }
+
+  Widget _notesSection(ThemeData theme) {
+    return _sectionCard(
+      theme,
+      title: 'ملاحظات وتوثيق',
+      icon: Icons.edit_note_outlined,
+      children: [
+        TextField(
+          key: const Key('collection_notes_field'),
+          controller: _notesCtrl,
+          textInputAction: TextInputAction.next,
+          minLines: 1,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'ملاحظات (اختياري)',
+            prefixIcon: Icon(Icons.sticky_note_2_outlined),
+          ),
+          onChanged: (_) => _markDirty(),
+        ),
+        if (_isEditing) ...[
+          const SizedBox(height: 12),
+          TextField(
+            key: const Key('collection_reason_field'),
+            controller: _reasonCtrl,
+            minLines: 1,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'سبب التعديل (يُحفظ في سجل المراجعة)',
+              hintText: 'مثال: مراجعة إيصال خزينة',
+              prefixIcon: Icon(Icons.history_edu),
+            ),
+            onChanged: (_) => _markDirty(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// The number the operator looks at while typing: general total minus fees.
+  /// It is a result, not an input, so it is drawn on its own tinted panel with
+  /// the same figure repeated in the always-visible save bar.
+  Widget _computedScales(ThemeData theme) {
+    final general = tryParsePiastres(_amountCtrl.text) ?? 0;
+    final fees = tryParsePiastres(_totalFeesCtrl.text) ?? 0;
+    final scales = general - fees;
+    final accent = theme.colorScheme.tertiary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.calculate_outlined, color: accent),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'إجمالي الموازين (محسوب)',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              if (_isEditing) ...[
-                const SizedBox(height: 12),
-                TextField(
-                  key: const Key('collection_reason_field'),
-                  controller: _reasonCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'سبب التعديل (يُحفظ في سجل المراجعة)',
-                    hintText: 'مثال: مراجعة إيصال خزينة',
-                    prefixIcon: Icon(Icons.history_edu),
+                const SizedBox(height: 2),
+                Text(
+                  formatEditableAmount(scales),
+                  key: const Key('collection_scales_value'),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: accent,
                   ),
                 ),
               ],
-            ],
+            ),
           ),
+          Text(
+            'ج.م',
+            style: theme.textTheme.labelLarge?.copyWith(color: accent),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _saveBar(ThemeData theme, {required int scales, required bool wide}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(top: BorderSide(color: theme.dividerColor)),
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('إجمالي الموازين', style: theme.textTheme.labelMedium),
+                  const SizedBox(height: 2),
+                  Text(
+                    formatMoney(scales, withCurrency: true),
+                    key: const Key('entry_scales_total'),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            FilledButton.icon(
+              key: const Key('collection_save_button'),
+              onPressed: _saving ? null : _submit,
+              icon: _saving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_outlined, size: 20),
+              label: Text(
+                _saving
+                    ? 'جارٍ الحفظ...'
+                    : (_isEditing ? 'حفظ التعديل' : 'حفظ التحصيل'),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: Size(wide ? 200 : 150, 54),
+              ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
-        ),
-        FilledButton.icon(
-          key: const Key('collection_save_button'),
-          onPressed: _saving ? null : _submit,
-          icon: const Icon(Icons.save_outlined, size: 18),
-          label: Text(
-            _saving
-                ? 'جارٍ الحفظ...'
-                : (_isEditing ? 'حفظ التعديل' : 'حفظ التحصيل'),
-          ),
-        ),
-      ],
     );
   }
 
@@ -558,24 +840,16 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
         controller: controller,
         textInputAction: TextInputAction.next,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        onChanged: (_) => setState(() {}),
+        onChanged: (_) {
+          _markDirty();
+          setState(() {});
+        },
         decoration: InputDecoration(
-            labelText: label, hintText: '0.00', suffixText: 'ج.م'),
+          labelText: label,
+          hintText: '0.00',
+          suffixText: 'ج.م',
+        ),
       );
-
-  Widget _calculatedScalesField() {
-    final general = tryParsePiastres(_amountCtrl.text) ?? 0;
-    final fees = tryParsePiastres(_totalFeesCtrl.text) ?? 0;
-    final scales = general - fees;
-    return InputDecorator(
-      decoration: const InputDecoration(
-        labelText: 'إجمالي الموازين (محسوب)',
-        suffixText: 'ج.م',
-        prefixIcon: Icon(Icons.calculate_outlined),
-      ),
-      child: Text(formatEditableAmount(scales)),
-    );
-  }
 }
 
 class _DuplicateConfirmDialog extends StatefulWidget {

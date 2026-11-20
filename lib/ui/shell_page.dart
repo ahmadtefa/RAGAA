@@ -8,6 +8,7 @@ import 'pages/backup_page.dart';
 import 'pages/collections_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/outlets_page.dart';
+import 'widgets/collection_form_dialog.dart';
 import 'pages/reports_page.dart';
 
 class _NavItem {
@@ -42,6 +43,7 @@ class RagaaShellPage extends StatefulWidget {
 
 class _RagaaShellPageState extends State<RagaaShellPage> {
   int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -57,6 +59,22 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
 
   void _onStateChanged() {
     if (mounted) setState(() {});
+  }
+
+  /// One tap from anywhere to the form that matters most: recording today's
+  /// collection. The operator never has to find the right tab first.
+  Widget _newCollectionFab() {
+    return FloatingActionButton.extended(
+      key: const Key('shell_new_collection'),
+      onPressed: () async {
+        final saved = await CollectionFormDialog.show(context, controller: widget.controller);
+        if (saved != null && mounted) {
+          setState(() => _selectedIndex = 1);
+        }
+      },
+      icon: const Icon(Icons.add_card),
+      label: const Text('تحصيل جديد'),
+    );
   }
 
   Widget _buildActivePage() {
@@ -131,6 +149,7 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
 
         if (isDesktop) {
           return Scaffold(
+            floatingActionButton: _newCollectionFab(),
             body: Row(
               children: [
                 Container(
@@ -227,6 +246,8 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
 
         // Compact / Android layout
         return Scaffold(
+          key: _scaffoldKey,
+          floatingActionButton: _newCollectionFab(),
           appBar: AppBar(
             title: Text('RAGAA | ${_kNavItems[_selectedIndex].label}'),
           ),
@@ -282,8 +303,17 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
           ),
           body: _buildActivePage(),
           bottomNavigationBar: NavigationBar(
-            selectedIndex: _selectedIndex < 4 ? _selectedIndex : 0,
-            onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+            // Four daily screens on the bar and one door to the rest: an
+            // operator on the backup or audit screen sees that module lit in
+            // "المزيد" instead of the bar silently pointing at the dashboard.
+            selectedIndex: _selectedIndex < 4 ? _selectedIndex : 4,
+            onDestinationSelected: (i) {
+              if (i == 4) {
+                _scaffoldKey.currentState?.openDrawer();
+                return;
+              }
+              setState(() => _selectedIndex = i);
+            },
             destinations: [
               for (var i = 0; i < 4; i++)
                 NavigationDestination(
@@ -291,6 +321,11 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
                   selectedIcon: Icon(_kNavItems[i].selectedIcon),
                   label: _kNavItems[i].label,
                 ),
+              const NavigationDestination(
+                icon: Icon(Icons.more_horiz),
+                selectedIcon: Icon(Icons.more),
+                label: 'المزيد',
+              ),
             ],
           ),
         );

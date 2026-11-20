@@ -226,8 +226,12 @@ class SavedFileBanner extends StatelessWidget {
   final String filePath;
   final VoidCallback onDismiss;
 
-  /// Mobile (Android/iOS) share-sheet action; hidden when `null`.
+  /// Shares the saved copy through the system share sheet; hidden when `null`.
   final Future<bool> Function()? onShare;
+
+  /// Opens the saved file with the program the system uses for it; hidden when
+  /// `null`. On a phone this is the "open after saving" the operator expects.
+  final Future<bool> Function()? onOpen;
 
   const SavedFileBanner({
     super.key,
@@ -235,78 +239,112 @@ class SavedFileBanner extends StatelessWidget {
     required this.filePath,
     required this.onDismiss,
     this.onShare,
+    this.onOpen,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFECFDF5),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFA7F3D0)),
+    final theme = Theme.of(context);
+    // A phone cannot fit four buttons beside the text: the actions wrap onto
+    // their own line instead of squeezing the file name to nothing.
+    final wide = MediaQuery.sizeOf(context).width >= 760;
+    final actions = <Widget>[
+      if (onOpen != null)
+        FilledButton.tonalIcon(
+          key: const Key('open_saved_file'),
+          onPressed: () async {
+            final opened = await onOpen!();
+            if (!opened && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('لا يوجد تطبيق على هذا الجهاز يفتح هذا الملف'),
+                ),
+              );
+            }
+          },
+          icon: const Icon(Icons.open_in_new, size: 16),
+          label: const Text('فتح الملف'),
+        ),
+      if (onShare != null)
+        TextButton.icon(
+          onPressed: () => onShare!(),
+          icon: const Icon(Icons.share, size: 16),
+          label: const Text('مشاركة'),
+        ),
+      TextButton.icon(
+        onPressed: () async {
+          await Clipboard.setData(ClipboardData(text: filePath));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('تم نسخ مسار الملف')),
+            );
+          }
+        },
+        icon: const Icon(Icons.copy, size: 16),
+        label: const Text('نسخ المسار'),
       ),
-      child: Row(
+      if (FileDialogHelper.hasNativeSaveDialog)
+        TextButton.icon(
+          onPressed: () => FileDialogHelper.revealContainingFolder(filePath),
+          icon: const Icon(Icons.folder_open, size: 16),
+          label: const Text('فتح المجلد'),
+        ),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: AppTheme.positiveGreen.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.positiveGreen.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle, color: Color(0xFF059669), size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13.5,
-                    color: Color(0xFF065F46),
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.check_circle, color: AppTheme.positiveGreen, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.positiveGreen,
+                      ),
+                    ),
+                    SelectableText(
+                      filePath,
+                      maxLines: 2,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-                SelectableText(
-                  filePath,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF047857),
-                  ),
-                ),
-              ],
+              ),
+              IconButton(
+                onPressed: onDismiss,
+                icon: const Icon(Icons.close, size: 18),
+                tooltip: 'إغلاق',
+              ),
+            ],
+          ),
+          if (actions.isNotEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 30),
+              child: wide
+                  ? Row(children: actions.expand((a) => [a, const SizedBox(width: 4)]).toList())
+                  : Wrap(spacing: 4, runSpacing: 0, children: actions),
             ),
-          ),
-          if (onShare != null)
-            TextButton.icon(
-              onPressed: () => onShare!(),
-              icon: const Icon(Icons.share, size: 16),
-              label: const Text('مشاركة'),
-            ),
-          TextButton.icon(
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: filePath));
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم نسخ مسار الملف')),
-                );
-              }
-            },
-            icon: const Icon(Icons.copy, size: 16),
-            label: const Text('نسخ المسار'),
-          ),
-          TextButton.icon(
-            onPressed: () => FileDialogHelper.revealContainingFolder(filePath),
-            icon: const Icon(Icons.folder_open, size: 16),
-            label: const Text('فتح المجلد'),
-          ),
-          IconButton(
-            onPressed: onDismiss,
-            icon: const Icon(Icons.close, size: 18),
-            tooltip: 'إغلاق',
-          ),
         ],
       ),
     );
   }
 }
 
-/// Compact pill badge.
 class StatusBadge extends StatelessWidget {
   final String text;
   final Color color;

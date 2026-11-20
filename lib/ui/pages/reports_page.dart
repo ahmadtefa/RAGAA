@@ -275,7 +275,10 @@ class _ReportsPageState extends State<ReportsPage> {
           SavedFileBanner(
             label: _lastExportLabel ?? 'تم حفظ الملف:',
             filePath: _lastExportedPath!,
-            onShare: () => widget.controller.shareFile(_lastExportedPath!),
+            onOpen: () => widget.controller.openSavedFile(_lastExportedPath!),
+            onShare: () => widget.controller.shareFile(
+              widget.controller.lastSavedLocalPath ?? _lastExportedPath!,
+            ),
             onDismiss: () => setState(() => _lastExportedPath = null),
           ),
         ],

@@ -26,6 +26,12 @@ dependencies:
   archive: ^3.6.1
   crypto: ^3.0.6
   share_plus: ^10.1.4
+  # Android's Storage Access Framework: the only permission-free way to let the
+  # operator choose the folder and file name of an export. Pinned, because the
+  # 3.1 line needs a newer Dart SDK than this project targets.
+  flutter_file_dialog: 3.0.3
+  # Opens the saved PDF/Excel in the viewer the phone already has.
+  open_filex: ^5.0.0
 
 dev_dependencies:
   flutter_test:
