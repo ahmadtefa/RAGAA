@@ -316,7 +316,11 @@ class _CollectionsPageState extends State<CollectionsPage> {
                       ...outlets.map(
                         (o) => DropdownMenuItem<String?>(
                           value: o.id,
-                          child: Text(o.name),
+                          child: Text(
+                            o.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ],
@@ -337,10 +341,34 @@ class _CollectionsPageState extends State<CollectionsPage> {
                       isDense: true,
                     ),
                     items: const [
-                      DropdownMenuItem(value: null, child: Text('كل الورديات')),
-                      DropdownMenuItem(value: 1, child: Text('الوردية الأولى')),
-                      DropdownMenuItem(value: 2, child: Text('الوردية الثانية')),
-                      DropdownMenuItem(value: 3, child: Text('الوردية الثالثة')),
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('كل الورديات', maxLines: 1),
+                      ),
+                      DropdownMenuItem(
+                        value: 1,
+                        child: Text(
+                          'الوردية الأولى',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 2,
+                        child: Text(
+                          'الوردية الثانية',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 3,
+                        child: Text(
+                          'الوردية الثالثة',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                     onChanged: (v) {
                       setState(() => _selectedShift = v);

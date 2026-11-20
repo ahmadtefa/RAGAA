@@ -373,19 +373,31 @@ class _ReportsPageState extends State<ReportsPage> {
                         items: const [
                           DropdownMenuItem(
                             value: null,
-                            child: Text('كل الورديات'),
+                            child: Text('كل الورديات', maxLines: 1),
                           ),
                           DropdownMenuItem(
                             value: 1,
-                            child: Text('الوردية الأولى'),
+                            child: Text(
+                              'الوردية الأولى',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           DropdownMenuItem(
                             value: 2,
-                            child: Text('الوردية الثانية'),
+                            child: Text(
+                              'الوردية الثانية',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           DropdownMenuItem(
                             value: 3,
-                            child: Text('الوردية الثالثة'),
+                            child: Text(
+                              'الوردية الثالثة',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                         onChanged: (v) {
@@ -657,7 +669,11 @@ class _ReportsPageState extends State<ReportsPage> {
                   12,
                   (i) => DropdownMenuItem(
                     value: i + 1,
-                    child: Text(kArabicMonthNames[i]),
+                    child: Text(
+                      kArabicMonthNames[i],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
                 onChanged: (v) {

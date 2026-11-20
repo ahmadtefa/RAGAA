@@ -6,7 +6,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:ragaa/core/app_theme.dart';
-import 'package:ragaa/core/formatters.dart';
 import 'package:ragaa/data/app_database.dart';
 import 'package:ragaa/data/backup_service.dart';
 import 'package:ragaa/data/ragaa_repository.dart';
@@ -110,6 +109,21 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = textScale;
   }
 
+  /// Full Flutter diagnostics for every reported error, so a failure names the
+  /// exact widget and source line that overflowed.
+  final layoutDiagnostics = <String>[];
+  var errorHookInstalled = false;
+
+  void installErrorCapture() {
+    if (errorHookInstalled) return;
+    errorHookInstalled = true;
+    final original = FlutterError.onError;
+    FlutterError.onError = (details) {
+      layoutDiagnostics.add(details.toString());
+      original?.call(details);
+    };
+  }
+
   /// Fails the test if Flutter reported any layout error for this screen, and
   /// prints the full Flutter diagnostic so the offending widget is named.
   void expectNoLayoutError(WidgetTester tester, String label) {
@@ -121,6 +135,12 @@ void main() {
         buffer.writeln(node.toStringDeep());
       }
     }
+    if (layoutDiagnostics.isNotEmpty) {
+      buffer.writeln('--- first reported diagnostic ---');
+      final lines = layoutDiagnostics.first.split('\n');
+      buffer.writeln(lines.take(24).join('\n'));
+    }
+    layoutDiagnostics.clear();
     fail(buffer.toString());
   }
 
@@ -187,6 +207,7 @@ void main() {
   for (final screen in screenNames) {
     testWidgets('$screen survives every phone/tablet/desktop width and scale',
         (tester) async {
+      installErrorCapture();
       addTearDown(() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
@@ -386,6 +407,17 @@ void main() {
             matching: find.byType(Text),
           )
           .evaluate()) {
+        // Amounts are wrapped in a FittedBox that scales them to fit, so their
+        // paragraph keeps its natural size while the painted text shrinks.
+        if (find
+            .ancestor(
+              of: find.byWidget(element.widget),
+              matching: find.byType(FittedBox),
+            )
+            .evaluate()
+            .isNotEmpty) {
+          continue;
+        }
         final box = element.renderObject! as RenderBox;
         final rect = box.localToGlobal(Offset.zero) & box.size;
         expect(
