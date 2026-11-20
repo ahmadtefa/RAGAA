@@ -25,4 +25,4 @@ Got dependencies!
 21 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Analyzing RAGAA...                                              
-No issues found! (ran in 8.8s)
+No issues found! (ran in 6.6s)
