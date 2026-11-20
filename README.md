@@ -118,13 +118,17 @@
    داخل مجلد التثبيت.
 
 البيانات خارج مجلد التثبيت، لذلك:
-`%APPDATA%\..\RAGAA\data\ragaa_accounting.db` و`Documents\RAGAA\{backups,exports}`
+`%APPDATA%\RAGAA\RAGAA\data\ragaa_accounting.db` و`Documents\RAGAA\{backups,exports}`
 تبقى سليمة عند التحديث أو إزالة التثبيت العادية.
 
 ### Android
 1. نزّل `RAGAA-release.apk` من الـArtifacts.
-2. اسمح بالتثبيت من مصدر غير معروف إن طُلب ذلك (أو وقّع APK بمفتاحك الخاص).
-3. التطبيق مستقل بقاعدة SQLite محلية؛ الملفات المصدَّرة تُحفظ في
+2. الـAPK موقَّع بمفتاح debug (قابل للتثبيت على أي جهاز) لأن المفتاح الخاص لا
+   يُرفع للمستودع. للتوقيع بمفتاحك أضف هذه الأسرار إلى المستودع فيصبح البناء
+   موقَّعًا تلقائيًا: `ANDROID_KEYSTORE_BASE64`، `ANDROID_KEY_ALIAS`،
+   `ANDROID_KEY_PASSWORD`، `ANDROID_STORE_PASSWORD`.
+3. اسمح بالتثبيت من مصدر غير معروف إن طُلب ذلك.
+4. التطبيق مستقل بقاعدة SQLite محلية؛ الملفات المصدَّرة تُحفظ في
    `Android/data/com.ragaa.ragaa/files/RAGAA/` ويمكن مشاركتها مباشرة عبر زر «مشاركة».
 
 ### التطوير محليًا

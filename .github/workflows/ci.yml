@@ -385,7 +385,7 @@ jobs:
           done
           for asset in \
             "assets/flutter_assets/assets/fonts/Amiri-Regular.ttf" \
-            "assets/flutter_assets/AssetManifest.json" \
+            "assets/flutter_assets/AssetManifest.bin" \
             "AndroidManifest.xml"; do
             if grep -q "$asset" /tmp/apk-listing.txt; then
               echo "OK  $asset" | tee -a "$LOG"
