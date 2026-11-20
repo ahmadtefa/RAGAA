@@ -42,11 +42,11 @@ Archive:  artifacts/RAGAA-release.apk
 OK  arm64-v8a native library
 OK  armeabi-v7a native library
 OK  assets/flutter_assets/assets/fonts/Amiri-Regular.ttf
-MISSING  assets/flutter_assets/AssetManifest.json
+OK  assets/flutter_assets/AssetManifest.bin
 OK  AndroidManifest.xml
 --- signature ---
 V2 Signer: certificate DN: C=US, O=Android, CN=Android Debug
-V2 Signer: certificate SHA-256 digest: df0abb3501f461047b7e3003f1f209822cf3bede38a5503377727cc89c9b8442
-V2 Signer: certificate SHA-1 digest: 92e7c73dd7a201fce41ae4c80465a82cdeb9e219
-V2 Signer: certificate MD5 digest: 30b260683d4fd8a57dda5a8a80f59887
--rw-r--r-- 1 runner runner 72300997 Nov 20 20:49 artifacts/RAGAA-release.apk
+V2 Signer: certificate SHA-256 digest: 0841211b811b7292ac86b2a4edebcca3e59e0432739e50c5d2b361f643292d8f
+V2 Signer: certificate SHA-1 digest: dff4e673d2be9776f571632ef2b9c90cc8be9fc0
+V2 Signer: certificate MD5 digest: 720610df92736fa780eeb153f6ae0779
+-rw-r--r-- 1 runner runner 72300997 Nov 20 21:00 artifacts/RAGAA-release.apk
