@@ -48,9 +48,15 @@ class PdfExportService {
     final showShift3 = report.filter.shiftNumber == null ||
         report.filter.shiftNumber == 3;
 
+    // The detailed sheet carries 13 columns (7 of them money); landscape keeps
+    // every number on a single line and matches the printed journal.
+    final pageFormat = report.details.isEmpty
+        ? PdfPageFormat.a4
+        : PdfPageFormat.a4.landscape;
+
     doc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: pageFormat,
         margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 28),
         textDirection: pw.TextDirection.rtl,
         header: (context) => context.pageNumber == 1
@@ -311,6 +317,18 @@ class PdfExportService {
                 formatMoney(report.grandTotalPiastres),
                 report.grandTotalPiastres > 0 ? '100.0%' : '0.0%',
               ],
+              columnWidths: [
+                4,
+                3,
+                if (report.filter.shiftNumber == null) ...[
+                  3,
+                  3,
+                  if (showShift3) 3,
+                ],
+                2,
+                3,
+                2,
+              ],
               headerBg: primaryColor,
               zebraBg: zebraColor,
               footerBg: totalRowColor,
@@ -346,6 +364,8 @@ class PdfExportService {
               formatMoney(report.grandTotalPiastres),
               report.grandTotalPiastres > 0 ? '100.0%' : '0.0%',
             ],
+            columnWidths: const [3.2, 2.4, 3.4, 3.4, 2.2],
+            headerFontSize: 9,
             headerBg: primaryColor,
             zebraBg: zebraColor,
             footerBg: totalRowColor,
@@ -399,6 +419,13 @@ class PdfExportService {
                 ],
                 '${report.totalEntries}',
                 formatMoney(report.grandTotalPiastres),
+              ],
+              columnWidths: [
+                4.2,
+                2.4,
+                if (report.filter.shiftNumber == null) ...[3, 3, 3],
+                2,
+                3.6,
               ],
               headerBg: primaryColor,
               zebraBg: zebraColor,
@@ -480,6 +507,23 @@ class PdfExportService {
                 '',
                 '',
               ],
+              columnWidths: const [
+                6, // التاريخ التشغيلي
+                5, // المنفذ
+                4.4, // الوردية
+                4.4, // الموعد
+                4.6, // يدوي
+                4.6, // آلي
+                5, // إجمالي الرسوم
+                5, // الموازين
+                3.6, // NFC
+                3.6, // VISA
+                5.2, // الإجمالي العام
+                4, // الحالة
+                7, // ملاحظات
+              ],
+              headerFontSize: 8.5,
+              bodyFontSize: 8.4,
               headerBg: primaryColor,
               zebraBg: zebraColor,
               footerBg: totalRowColor,
@@ -573,6 +617,11 @@ class PdfExportService {
 
   /// Builds an RTL table by reversing visual column order so the first logical
   /// Arabic column appears on the far right of the page.
+  ///
+  /// [columnWidths] are flex weights in logical order; passing them keeps every
+  /// numeric column wide enough for its content (no wrapping of money values).
+  /// The header row is marked as repeating so it is printed again on every page
+  /// of a long table.
   pw.Widget _buildRtlTable({
     required List<String> headers,
     required List<List<String>> rows,
@@ -581,28 +630,59 @@ class PdfExportService {
     required PdfColor zebraBg,
     required PdfColor footerBg,
     required PdfColor borderColor,
+    List<double>? columnWidths,
+    double headerFontSize = 9,
+    double bodyFontSize = 8.8,
   }) {
     final reversedHeaders = headers.reversed.toList();
+    final reversedWidths = columnWidths?.reversed.toList();
+
+    pw.Widget cell(
+      String text, {
+      required bool isLast,
+      required bool isHeader,
+      required bool isFooter,
+      required PdfColor? background,
+    }) {
+      final style = pw.TextStyle(
+        fontSize: isHeader || isFooter ? headerFontSize : bodyFontSize,
+        color: isHeader
+            ? PdfColors.white
+            : isFooter
+                ? const PdfColor.fromInt(0xFF064E3B)
+                : const PdfColor.fromInt(0xFF0F172A),
+        fontWeight:
+            isHeader || isFooter ? pw.FontWeight.bold : pw.FontWeight.normal,
+      );
+      return pw.Container(
+        color: background,
+        padding: pw.EdgeInsets.symmetric(
+          horizontal: isHeader ? 3 : 4,
+          vertical: isHeader ? 5 : 4,
+        ),
+        alignment:
+            isLast ? pw.Alignment.centerRight : pw.Alignment.center,
+        child: pw.Text(
+          text,
+          textAlign: isLast ? pw.TextAlign.right : pw.TextAlign.center,
+          textDirection: pw.TextDirection.rtl,
+          style: style,
+        ),
+      );
+    }
+
     final tableRows = <pw.TableRow>[
       pw.TableRow(
+        repeat: true,
         decoration: pw.BoxDecoration(color: headerBg),
         children: [
-          for (final h in reversedHeaders)
-            pw.Padding(
-              padding: const pw.EdgeInsets.symmetric(
-                horizontal: 5,
-                vertical: 5,
-              ),
-              child: pw.Text(
-                h,
-                textAlign: pw.TextAlign.center,
-                textDirection: pw.TextDirection.rtl,
-                style: pw.TextStyle(
-                  color: PdfColors.white,
-                  fontSize: 9,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
+          for (var i = 0; i < reversedHeaders.length; i++)
+            cell(
+              reversedHeaders[i],
+              isLast: i == reversedHeaders.length - 1,
+              isHeader: true,
+              isFooter: false,
+              background: null,
             ),
         ],
       ),
@@ -610,29 +690,18 @@ class PdfExportService {
 
     for (var i = 0; i < rows.length; i++) {
       final r = rows[i].reversed.toList();
+      final background = i.isOdd ? zebraBg : PdfColors.white;
       tableRows.add(
         pw.TableRow(
-          decoration: pw.BoxDecoration(
-            color: i.isOdd ? zebraBg : PdfColors.white,
-          ),
+          decoration: pw.BoxDecoration(color: background),
           children: [
             for (var c = 0; c < r.length; c++)
-              pw.Padding(
-                padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 4,
-                ),
-                child: pw.Text(
-                  r[c],
-                  textAlign: c == r.length - 1
-                      ? pw.TextAlign.right
-                      : pw.TextAlign.center,
-                  textDirection: pw.TextDirection.rtl,
-                  style: const pw.TextStyle(
-                    fontSize: 8.8,
-                    color: PdfColor.fromInt(0xFF0F172A),
-                  ),
-                ),
+              cell(
+                r[c],
+                isLast: c == r.length - 1,
+                isHeader: false,
+                isFooter: false,
+                background: null,
               ),
           ],
         ),
@@ -642,26 +711,16 @@ class PdfExportService {
     final revFooter = footerRow.reversed.toList();
     tableRows.add(
       pw.TableRow(
+        repeat: false,
         decoration: pw.BoxDecoration(color: footerBg),
         children: [
           for (var c = 0; c < revFooter.length; c++)
-            pw.Padding(
-              padding: const pw.EdgeInsets.symmetric(
-                horizontal: 5,
-                vertical: 5,
-              ),
-              child: pw.Text(
-                revFooter[c],
-                textAlign: c == revFooter.length - 1
-                    ? pw.TextAlign.right
-                    : pw.TextAlign.center,
-                textDirection: pw.TextDirection.rtl,
-                style: pw.TextStyle(
-                  fontSize: 9,
-                  fontWeight: pw.FontWeight.bold,
-                  color: const PdfColor.fromInt(0xFF064E3B),
-                ),
-              ),
+            cell(
+              revFooter[c],
+              isLast: c == revFooter.length - 1,
+              isHeader: false,
+              isFooter: true,
+              background: null,
             ),
         ],
       ),
@@ -670,6 +729,12 @@ class PdfExportService {
     return pw.Table(
       border: pw.TableBorder.all(color: borderColor, width: 0.5),
       defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+      columnWidths: reversedWidths == null
+          ? null
+          : {
+              for (var i = 0; i < reversedWidths.length; i++)
+                i: pw.FlexColumnWidth(reversedWidths[i]),
+            },
       children: tableRows,
     );
   }
