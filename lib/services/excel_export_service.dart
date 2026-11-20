@@ -5,7 +5,9 @@ import 'package:excel/excel.dart';
 
 import '../core/exceptions.dart';
 import '../core/formatters.dart';
+import '../models/daily_journal.dart';
 import '../models/report_models.dart';
+import 'xlsx_print_setup.dart';
 
 /// Generates multi-sheet Arabic RTL Excel (`.xlsx`) accounting workbooks.
 ///
@@ -162,22 +164,68 @@ class ExcelExportService {
       totalMoneyStyle: totalMoneyStyle,
     );
 
-    final journal = excel[dailyJournalSheetName];
-    journal.isRTL = true;
-    _buildDailyJournalSheet(
-        sheet: journal,
-        report: report,
-        titleStyle: titleStyle,
-        headerStyle: headerStyle,
-        textStyle: textCellStyle,
-        moneyStyle: moneyCellStyle,
-        totalTextStyle: totalTextStyle,
-        totalMoneyStyle: totalMoneyStyle);
+    // 6. Daily journal sheet (single-day reports mirror the paper form exactly).
+    int? journalLastRow;
+    if (report.filter.range.startKey == report.filter.range.endKey) {
+      final journalSheet = excel[dailyJournalSheetName];
+      journalSheet.isRTL = true;
+      journalLastRow = _buildJournalSheet(
+        sheet: journalSheet,
+        journal: DailyJournal.fromReport(report),
+      );
+    }
 
     if (defaultSheet != null && defaultSheet != summarySheetName) {
       excel.delete(defaultSheet);
     }
 
+    return _finalizeWorkbook(
+      excel,
+      journalSheetName: journalLastRow == null ? null : dailyJournalSheetName,
+      journalLastRow: journalLastRow,
+    );
+  }
+
+  /// Builds a standalone `.xlsx` workbook that contains only the daily journal
+  /// sheet, formatted exactly like the PDF journal.
+  Uint8List buildJournalExcelBytes(DailyJournal journal) {
+    final excel = Excel.createExcel();
+    final defaultSheet = excel.getDefaultSheet();
+
+    final sheet = excel[dailyJournalSheetName];
+    sheet.isRTL = true;
+    final lastRow = _buildJournalSheet(sheet: sheet, journal: journal);
+
+    if (defaultSheet != null) {
+      excel.delete(defaultSheet);
+    }
+    return _finalizeWorkbook(
+      excel,
+      journalSheetName: dailyJournalSheetName,
+      journalLastRow: lastRow,
+    );
+  }
+
+  /// Writes the standalone journal workbook to [outputPath].
+  Future<File> exportJournalToFile(
+    DailyJournal journal,
+    String outputPath,
+  ) async {
+    final bytes = buildJournalExcelBytes(journal);
+    final file = File(outputPath);
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(bytes, flush: true);
+    return file;
+  }
+
+  /// Encodes the workbook, forces RTL on every sheet and applies the printable
+  /// page setup (landscape, fit-to-width, frozen header, print area) to the
+  /// journal sheet.
+  Uint8List _finalizeWorkbook(
+    Excel excel, {
+    String? journalSheetName,
+    int? journalLastRow,
+  }) {
     final initialBytes = excel.encode();
     if (initialBytes == null || initialBytes.isEmpty) {
       throw const RagaaException('تعذر إنشاء ملف Excel');
@@ -193,7 +241,39 @@ class ExcelExportService {
     if (finalBytes == null || finalBytes.isEmpty) {
       throw const RagaaException('تعذر حفظ اتجاه RTL في ملف Excel');
     }
-    return Uint8List.fromList(finalBytes);
+    var encoded = Uint8List.fromList(finalBytes);
+
+    // Formulas are written without cached results, so ask the spreadsheet app
+    // to recalculate everything when the file is opened.
+    final recalc = XlsxPrintSetup.ensureFullRecalc(encoded);
+    if (recalc.applied && _decodesCleanly(recalc.bytes)) {
+      encoded = recalc.bytes;
+    }
+
+    if (journalSheetName == null || journalLastRow == null) {
+      return encoded;
+    }
+
+    final patched = XlsxPrintSetup.apply(
+      encoded,
+      sheetName: journalSheetName,
+      lastRow: journalLastRow,
+      lastColumn: journalHeaders.length - 1,
+    );
+    if (patched.applied && _decodesCleanly(patched.bytes)) {
+      return patched.bytes;
+    }
+    return encoded;
+  }
+
+  /// Safety net: never ship a workbook we cannot read back.
+  bool _decodesCleanly(Uint8List bytes) {
+    try {
+      Excel.decodeBytes(bytes);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Writes the generated Arabic RTL `.xlsx` workbook directly to [outputPath].
@@ -219,106 +299,385 @@ class ExcelExportService {
     cell.cellStyle = style;
   }
 
-  void _buildDailyJournalSheet(
-      {required Sheet sheet,
-      required ReportData report,
-      required CellStyle titleStyle,
-      required CellStyle headerStyle,
-      required CellStyle textStyle,
-      required CellStyle moneyStyle,
-      required CellStyle totalTextStyle,
-      required CellStyle totalMoneyStyle}) {
-    const headers = [
-      'المنفذ',
-      'يدوي',
-      'آلي',
-      'إجمالي الرسوم',
-      'الموازين',
-      'NFC',
-      'VISA',
-      'الإجمالي العام'
-    ];
+  // ---------------------------------------------------------------------------
+  // Daily journal (اليومية) — mirrors the paper form and the PDF export
+  // ---------------------------------------------------------------------------
+
+  /// Column headers of the daily journal, in logical (right-to-left) order.
+  static const List<String> journalHeaders = <String>[
+    'البيان',
+    'الرسوم اليدوية',
+    'الرسوم الآلية',
+    'إجمالي الرسوم',
+    'إجمالي الموازين',
+    'NFC',
+    'VISA',
+    'الإجمالي العام',
+  ];
+
+  static final CellStyle _journalHeaderStyle = CellStyle(
+    bold: true,
+    fontSize: 10,
+    fontColorHex: ExcelColor.white,
+    backgroundColorHex: ExcelColor.fromHexString('#0F5C54'),
+    horizontalAlign: HorizontalAlign.Center,
+    verticalAlign: VerticalAlign.Center,
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalMoneyStyle = CellStyle(
+    fontSize: 10,
+    horizontalAlign: HorizontalAlign.Center,
+    verticalAlign: VerticalAlign.Center,
+    numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalLabelStyle = CellStyle(
+    fontSize: 10,
+    horizontalAlign: HorizontalAlign.Right,
+    verticalAlign: VerticalAlign.Center,
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalScalesStyle = CellStyle(
+    fontSize: 10,
+    horizontalAlign: HorizontalAlign.Center,
+    verticalAlign: VerticalAlign.Center,
+    backgroundColorHex: ExcelColor.fromHexString('#D9BE8A'),
+    numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalBandStyle = CellStyle(
+    bold: true,
+    fontSize: 10,
+    fontColorHex: ExcelColor.fromHexString('#0F5C54'),
+    backgroundColorHex: ExcelColor.fromHexString('#E3EFEC'),
+    horizontalAlign: HorizontalAlign.Right,
+    verticalAlign: VerticalAlign.Center,
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalShiftTotalLabelStyle = CellStyle(
+    bold: true,
+    fontSize: 10,
+    backgroundColorHex: ExcelColor.fromHexString('#F7EC00'),
+    horizontalAlign: HorizontalAlign.Right,
+    verticalAlign: VerticalAlign.Center,
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalShiftTotalMoneyStyle = CellStyle(
+    bold: true,
+    fontSize: 10,
+    backgroundColorHex: ExcelColor.fromHexString('#F7EC00'),
+    horizontalAlign: HorizontalAlign.Center,
+    verticalAlign: VerticalAlign.Center,
+    numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalDayTotalLabelStyle = CellStyle(
+    bold: true,
+    fontSize: 10,
+    backgroundColorHex: ExcelColor.fromHexString('#E2D9EC'),
+    horizontalAlign: HorizontalAlign.Right,
+    verticalAlign: VerticalAlign.Center,
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalDayTotalMoneyStyle = CellStyle(
+    bold: true,
+    fontSize: 10,
+    backgroundColorHex: ExcelColor.fromHexString('#E2D9EC'),
+    horizontalAlign: HorizontalAlign.Center,
+    verticalAlign: VerticalAlign.Center,
+    numberFormat: NumFormat.custom(formatCode: '#,##0.00'),
+    leftBorder: _journalBorder,
+    rightBorder: _journalBorder,
+    topBorder: _journalBorder,
+    bottomBorder: _journalBorder,
+  );
+
+  static final CellStyle _journalTitleStyle = CellStyle(
+    bold: true,
+    fontSize: 14,
+    fontColorHex: ExcelColor.white,
+    backgroundColorHex: ExcelColor.fromHexString('#0F5C54'),
+    horizontalAlign: HorizontalAlign.Center,
+    verticalAlign: VerticalAlign.Center,
+  );
+
+  static final CellStyle _journalSubtleStyle = CellStyle(
+    fontSize: 9.5,
+    fontColorHex: ExcelColor.fromHexString('#475569'),
+    horizontalAlign: HorizontalAlign.Center,
+    verticalAlign: VerticalAlign.Center,
+  );
+
+  static final Border _journalBorder = Border(
+    borderStyle: BorderStyle.Thin,
+    borderColorHex: ExcelColor.fromHexString('#1F2937'),
+  );
+
+  /// Writes the journal sheet and returns the index of its last used row.
+  int _buildJournalSheet({
+    required Sheet sheet,
+    required DailyJournal journal,
+  }) {
+    var row = 0;
+
+    // Row 1 — title (merged across the eight columns).
     _setCell(
+      sheet,
+      0,
+      row,
+      TextCellValue('${journal.title} — ${journal.headerLine}'),
+      _journalTitleStyle,
+    );
+    for (var column = 1; column < journalHeaders.length; column++) {
+      _setCell(sheet, column, row, TextCellValue(''), _journalTitleStyle);
+    }
+    _mergeRow(sheet, row, journalHeaders.length - 1);
+    sheet.setRowHeight(row, 26);
+    row++;
+
+    // Row 2 — metadata (outlets / shifts / print timestamp).
+    _setCell(
+      sheet,
+      0,
+      row,
+      TextCellValue(
+        'المنافذ: ${journal.outletsFilterLabel} (${journal.outletCount} منفذ)   |   '
+        'الورديات المفعّلة: ${journal.configuredShiftCount}   |   '
+        'الورديات المسجّلة: ${journal.recordedShiftsCount}   |   '
+        'تاريخ الطباعة: ${formatTimestamp(journal.generatedAt)}',
+      ),
+      _journalSubtleStyle,
+    );
+    for (var column = 1; column < journalHeaders.length; column++) {
+      _setCell(sheet, column, row, TextCellValue(''), _journalSubtleStyle);
+    }
+    _mergeRow(sheet, row, journalHeaders.length - 1);
+    row++;
+
+    // Row 3 — repeating column header (frozen + repeated when printed).
+    for (var column = 0; column < journalHeaders.length; column++) {
+      _setCell(
+        sheet,
+        column,
+        row,
+        TextCellValue(journalHeaders[column]),
+        _journalHeaderStyle,
+      );
+    }
+    row++;
+
+    final outletRows = <String, List<int>>{};
+
+    for (final section in journal.sections) {
+      // Shift band.
+      _setCell(
         sheet,
         0,
-        0,
+        row,
         TextCellValue(
-            'يومية التحصيلات — ${report.filter.range.arabicDescription}'),
-        titleStyle);
-    for (var c = 1; c < headers.length; c++) {
-      _setCell(sheet, c, 0, TextCellValue(''), titleStyle);
-    }
-    sheet.merge(
-        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
-        CellIndex.indexByColumnRow(
-            columnIndex: headers.length - 1, rowIndex: 0));
-    var r = 2;
-    final yellow = CellStyle(
-        bold: true,
-        backgroundColorHex: ExcelColor.fromHexString('#FFF200'),
-        horizontalAlign: HorizontalAlign.Center,
-        verticalAlign: VerticalAlign.Center,
-        numberFormat: NumFormat.custom(formatCode: '#,##0.00'));
-    for (final shift in [1, 2, 3]) {
-      final rows = report.details.where((e) => e.shiftNumber == shift).toList();
-      if (rows.isEmpty) continue;
-      _setCell(sheet, 0, r, TextCellValue('الوردية $shift'), titleStyle);
-      for (var c = 1; c < headers.length; c++) {
-        _setCell(sheet, c, r, TextCellValue(''), titleStyle);
+          '${section.shiftLabel} — '
+          '${section.recordedCount}/${section.rows.length} وردية مسجّلة',
+        ),
+        _journalBandStyle,
+      );
+      for (var column = 1; column < journalHeaders.length; column++) {
+        _setCell(sheet, column, row, TextCellValue(''), _journalBandStyle);
       }
-      sheet.merge(
-          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r),
-          CellIndex.indexByColumnRow(
-              columnIndex: headers.length - 1, rowIndex: r));
-      r++;
-      for (var c = 0; c < headers.length; c++) {
-        _setCell(sheet, c, r, TextCellValue(headers[c]), headerStyle);
-      }
-      r++;
-      final first = r + 1;
-      for (final e in rows) {
-        _setCell(sheet, 0, r, TextCellValue(e.outletName), textStyle);
-        final vals = [
-          e.manualFeesPiastres,
-          e.automaticFeesPiastres,
-          e.totalFeesPiastres,
-          e.scalesTotalPiastres,
-          e.nfcPiastres,
-          e.visaPiastres,
-          e.generalTotalPiastres
-        ];
-        for (var c = 0; c < vals.length; c++) {
-          _setCell(sheet, c + 1, r, DoubleCellValue(piastresToUnits(vals[c])),
-              moneyStyle);
-        }
-        r++;
-      }
-      _setCell(
-          sheet, 0, r, TextCellValue('إجمالي الوردية'), totalTextStyle);
-      for (var c = 1; c < headers.length; c++) {
+      _mergeRow(sheet, row, journalHeaders.length - 1);
+      row++;
+
+      final firstDataRow = row;
+      for (final journalRow in section.rows) {
         _setCell(
-            sheet,
-            c,
-            r,
-            FormulaCellValue(
-                'SUM(${String.fromCharCode(65 + c)}$first:${String.fromCharCode(65 + c)}$r)'),
-            yellow);
-      }
-      r += 2;
-    }
-    _setCell(sheet, 0, r, TextCellValue('الإجمالي العام لليوم'),
-        totalTextStyle);
-    for (var c = 1; c < headers.length; c++) {
-      _setCell(
           sheet,
-          c,
-          r,
+          0,
+          row,
+          TextCellValue(journalRow.outletName),
+          _journalLabelStyle,
+        );
+        if (journalRow.hasRecord) {
+          final amounts = journalRow.amounts;
+          _setCell(sheet, 1, row,
+              DoubleCellValue(piastresToUnits(amounts.manualFeesPiastres)),
+              _journalMoneyStyle);
+          _setCell(sheet, 2, row,
+              DoubleCellValue(piastresToUnits(amounts.automaticFeesPiastres)),
+              _journalMoneyStyle);
+          _setCell(sheet, 3, row,
+              DoubleCellValue(piastresToUnits(amounts.totalFeesPiastres)),
+              _journalMoneyStyle);
+          // Real Excel formula: الإجمالي العام − إجمالي الرسوم
+          _setCell(
+            sheet,
+            4,
+            row,
+            FormulaCellValue('H${row + 1}-D${row + 1}'),
+            _journalScalesStyle,
+          );
+          _setCell(sheet, 5, row,
+              DoubleCellValue(piastresToUnits(amounts.nfcPiastres)),
+              _journalMoneyStyle);
+          _setCell(sheet, 6, row,
+              DoubleCellValue(piastresToUnits(amounts.visaPiastres)),
+              _journalMoneyStyle);
+          _setCell(sheet, 7, row,
+              DoubleCellValue(piastresToUnits(amounts.generalTotalPiastres)),
+              _journalMoneyStyle);
+        } else {
+          for (var column = 1; column < journalHeaders.length; column++) {
+            _setCell(sheet, column, row, TextCellValue(''), _journalMoneyStyle);
+          }
+        }
+        outletRows.putIfAbsent(journalRow.outletId, () => <int>[]).add(row);
+        row++;
+      }
+
+      // Yellow shift total row built with SUM formulas.
+      _setCell(
+        sheet,
+        0,
+        row,
+        TextCellValue('إجمالي ${defaultShiftLabel(section.shiftNumber)}'),
+        _journalShiftTotalLabelStyle,
+      );
+      for (var column = 1; column < journalHeaders.length; column++) {
+        final letter = _columnLetter(column);
+        _setCell(
+          sheet,
+          column,
+          row,
           FormulaCellValue(
-              'SUM(${String.fromCharCode(65 + c)}1:${String.fromCharCode(65 + c)}$r)'),
-          yellow);
-      sheet.setColumnWidth(c, 16);
+            'SUM($letter${firstDataRow + 1}:$letter$row)',
+          ),
+          _journalShiftTotalMoneyStyle,
+        );
+      }
+      row++;
     }
-    sheet.setColumnWidth(0, 24);
+
+    // Section 6 — «إجمالي اليوم لكل منفذ» (mandatory, one row per outlet).
+    row++;
+    _setCell(
+      sheet,
+      0,
+      row,
+      TextCellValue('إجمالي اليوم لكل منفذ'),
+      _journalBandStyle,
+    );
+    for (var column = 1; column < journalHeaders.length; column++) {
+      _setCell(sheet, column, row, TextCellValue(''), _journalBandStyle);
+    }
+    _mergeRow(sheet, row, journalHeaders.length - 1);
+    row++;
+
+    final firstDayTotalRow = row;
+    for (final total in journal.outletDayTotals) {
+      _setCell(
+        sheet,
+        0,
+        row,
+        TextCellValue(total.outletName),
+        _journalDayTotalLabelStyle,
+      );
+      final rowsForOutlet = outletRows[total.outletId] ?? const <int>[];
+      for (var column = 1; column < journalHeaders.length; column++) {
+        final letter = _columnLetter(column);
+        final references = rowsForOutlet
+            .map((dataRow) => '$letter${dataRow + 1}')
+            .join(',');
+        _setCell(
+          sheet,
+          column,
+          row,
+          references.isEmpty
+              ? const IntCellValue(0)
+              : FormulaCellValue('SUM($references)'),
+          _journalDayTotalMoneyStyle,
+        );
+      }
+      row++;
+    }
+
+    // Section 7 — «الإجمالي العام لليوم»: sum of the independent outlet totals.
+    final lastDayTotalRow = row - 1;
+    _setCell(
+      sheet,
+      0,
+      row,
+      TextCellValue('الإجمالي العام لليوم'),
+      _journalDayTotalLabelStyle,
+    );
+    for (var column = 1; column < journalHeaders.length; column++) {
+      final letter = _columnLetter(column);
+      _setCell(
+        sheet,
+        column,
+        row,
+        FormulaCellValue(
+          'SUM($letter${firstDayTotalRow + 1}:$letter${lastDayTotalRow + 1})',
+        ),
+        _journalDayTotalMoneyStyle,
+      );
+    }
+    final lastRow = row;
+
+    const widths = <double>[30, 16, 16, 17, 18, 13, 13, 18];
+    for (var index = 0; index < widths.length; index++) {
+      sheet.setColumnWidth(index, widths[index]);
+    }
+    return lastRow;
+  }
+
+  void _mergeRow(Sheet sheet, int rowIndex, int lastColumn) {
+    sheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex),
+      CellIndex.indexByColumnRow(
+        columnIndex: lastColumn,
+        rowIndex: rowIndex,
+      ),
+    );
+  }
+
+  static String _columnLetter(int index) {
+    var current = index;
+    final letters = StringBuffer();
+    while (current >= 0) {
+      letters.write(String.fromCharCode(65 + (current % 26)));
+      current = (current ~/ 26) - 1;
+    }
+    return letters.toString().split('').reversed.join();
   }
 
   void _buildSummarySheet({

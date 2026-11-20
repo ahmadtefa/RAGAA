@@ -14,9 +14,12 @@ import '../models/collection_record.dart';
 import '../models/collection_amounts.dart';
 import '../models/outlet.dart';
 import '../models/outlet_shift.dart';
+import '../models/daily_journal.dart';
 import '../models/report_models.dart';
+import '../services/daily_journal_pdf_service.dart';
 import '../services/excel_export_service.dart';
 import '../services/file_dialog_helper.dart';
+import '../services/file_share_service.dart';
 import '../services/pdf_export_service.dart';
 
 /// Application-level state coordinator wiring SQLite repository, reports,
@@ -27,7 +30,9 @@ class RagaaController extends ChangeNotifier {
   final BackupService backupService;
   final PdfExportService pdfExportService;
   final ExcelExportService excelExportService;
+  final DailyJournalPdfService dailyJournalPdfService;
   final FileDialogHelper fileDialogHelper;
+  final FileShareService fileShareService;
 
   bool isInitialized = false;
   bool isBusy = false;
@@ -45,9 +50,14 @@ class RagaaController extends ChangeNotifier {
     required this.backupService,
     PdfExportService? pdfExportService,
     ExcelExportService? excelExportService,
+    DailyJournalPdfService? dailyJournalPdfService,
+    FileShareService? fileShareService,
     required this.fileDialogHelper,
   })  : pdfExportService = pdfExportService ?? PdfExportService(),
-        excelExportService = excelExportService ?? ExcelExportService();
+        excelExportService = excelExportService ?? ExcelExportService(),
+        dailyJournalPdfService =
+            dailyJournalPdfService ?? DailyJournalPdfService(),
+        fileShareService = fileShareService ?? const FileShareService();
 
   /// Creates and initializes a production controller backed by on-disk SQLite.
   static Future<RagaaController> createDefault() async {
@@ -151,6 +161,18 @@ class RagaaController extends ChangeNotifier {
     int shiftNumber,
   ) =>
       repository.countCollectionsForOutletShift(outletId, shiftNumber);
+
+  /// Moves an outlet one position up (-1) or down (+1) in the printed order.
+  Future<void> moveOutlet(String outletId, int delta) async {
+    await repository.moveOutlet(outletId, delta);
+    await refreshAll();
+  }
+
+  /// Persists an explicit outlet order (used by drag & drop / settings screens).
+  Future<void> reorderOutlets(List<String> orderedOutletIds) async {
+    await repository.reorderOutlets(orderedOutletIds);
+    await refreshAll();
+  }
 
   // ---------------------------------------------------------------------------
   // Collection operations
@@ -300,6 +322,99 @@ class RagaaController extends ChangeNotifier {
         : await exportReportExcel(report, overridePath: targetPath);
     return saved!;
   }
+
+  // ---------------------------------------------------------------------------
+  // Daily journal (اليومية)
+  // ---------------------------------------------------------------------------
+
+  /// Builds the electronic daily journal for [date]. The very same model is
+  /// printed to PDF, written to Excel and rendered on screen.
+  Future<DailyJournal> buildDailyJournal(
+    DateTime date, {
+    Set<String> outletIds = const {},
+  }) =>
+      repository.buildDailyJournal(
+        dateKey(date),
+        outletIds: outletIds,
+      );
+
+  /// Exports [journal] as a print-ready A4 landscape PDF.
+  Future<String?> exportJournalPdf(
+    DailyJournal journal, {
+    String? overridePath,
+  }) async {
+    final path = overridePath ??
+        await fileDialogHelper.pickSavePath(
+          suggestedName: suggestedJournalFileName(journal, extension: 'pdf'),
+          extension: 'pdf',
+          typeLabel: 'PDF Daily Journal',
+        );
+    if (path == null) return null;
+
+    isBusy = true;
+    notifyListeners();
+    try {
+      final file = await dailyJournalPdfService.exportJournalToFile(
+        journal,
+        path,
+      );
+      return file.path;
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  /// Exports [journal] as an RTL `.xlsx` sheet with real Excel formulas.
+  Future<String?> exportJournalExcel(
+    DailyJournal journal, {
+    String? overridePath,
+  }) async {
+    final path = overridePath ??
+        await fileDialogHelper.pickSavePath(
+          suggestedName: suggestedJournalFileName(journal, extension: 'xlsx'),
+          extension: 'xlsx',
+          typeLabel: 'Excel Workbook (.xlsx)',
+        );
+    if (path == null) return null;
+
+    isBusy = true;
+    notifyListeners();
+    try {
+      final file = await excelExportService.exportJournalToFile(journal, path);
+      return file.path;
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  /// Saves the journal straight into the default exports directory.
+  Future<String> quickExportJournal(
+    DailyJournal journal, {
+    required bool asPdf,
+  }) async {
+    final extension = asPdf ? 'pdf' : 'xlsx';
+    await Directory(fileDialogHelper.defaultExportsDir).create(recursive: true);
+    final targetPath = p.join(
+      fileDialogHelper.defaultExportsDir,
+      suggestedJournalFileName(journal, extension: extension),
+    );
+    final saved = asPdf
+        ? await exportJournalPdf(journal, overridePath: targetPath)
+        : await exportJournalExcel(journal, overridePath: targetPath);
+    return saved ?? targetPath;
+  }
+
+  static String suggestedJournalFileName(
+    DailyJournal journal, {
+    required String extension,
+  }) =>
+      'ragaa_journal_${journal.operationalDate}.$extension';
+
+  /// Opens the native share sheet for [filePath] (Android/iOS only).
+  Future<bool> shareFile(String filePath) =>
+      fileShareService.shareFile(filePath);
 
   // ---------------------------------------------------------------------------
   // Audit Log

@@ -4,103 +4,96 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ragaa/core/date_ranges.dart';
 import 'package:ragaa/data/app_database.dart';
 import 'package:ragaa/data/ragaa_repository.dart';
-import 'package:ragaa/models/collection_amounts.dart';
 import 'package:ragaa/models/report_models.dart';
+import 'package:ragaa/services/daily_journal_pdf_service.dart';
 import 'package:ragaa/services/excel_export_service.dart';
 import 'package:ragaa/services/pdf_export_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Generates real (non-mocked) PDF and Excel files from a deterministic demo
-/// dataset into `review/` so the produced documents can be inspected visually
-/// and compared against the paper daily journal.
+import 'support/journal_demo_data.dart';
+
+/// Generates real (non-mocked) PDF and Excel documents from a deterministic demo
+/// dataset into `review/`, so the produced files can be inspected visually and
+/// compared with the paper daily journal.
+///
+/// CI commits the regenerated files back to the working branch, which makes the
+/// exact deliverables reviewable without a local Flutter toolchain.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
 
   final reviewDir = Directory('review');
 
-  test('generates review PDF/Excel samples from real data', () async {
+  test('generates the review daily-journal and report samples', () async {
     await reviewDir.create(recursive: true);
 
-    final db = AppDatabase.atPath(inMemoryDatabasePath,
-        factory: databaseFactoryFfiNoIsolate);
+    final db = AppDatabase.atPath(
+      inMemoryDatabasePath,
+      factory: databaseFactoryFfiNoIsolate,
+    );
     await db.open();
     addTearDown(db.close);
     final repo = RagaaRepository(db);
 
-    final outlets = <String, String>{};
-    for (final spec in <(String, int)>[
-      ('نقل ١', 3),
-      ('نقل ٢', 3),
-      ('ملاكي', 3),
-      ('خروج ١', 3),
-      ('رقابة', 2),
-      ('المنيا ٢', 2),
-      ('المنيا ٣', 2),
-      ('الدهسا', 2),
-    ]) {
-      final outlet = await repo.createOutlet(name: spec.$1, shiftCount: spec.$2);
-      outlets[spec.$1] = outlet.id;
-    }
+    await JournalDemoDataset.seed(repo);
 
-    const demoDate = '2026-11-19';
-    final samples = <String, List<int>>{
-      'نقل ١': [1000000, 1200000, 900000],
-      'نقل ٢': [800000, 950000, 700000],
-      'ملاكي': [600000, 640000, 610000],
-      'خروج ١': [450000, 470000, 0],
-      'رقابة': [1000000, 1000000],
-      'المنيا ٢': [550000, 520000],
-      'المنيا ٣': [480000, 500000],
-      'الدهسا': [2100000, 2050000],
-    };
-    final feeSamples = <String, List<(int, int, int, int, int)>>{
-      'نقل ١': [tuple(200000, 300000, 550000, 100000, 50000), tuple(0, 0, 0, 0, 0), tuple(0, 0, 0, 0, 0)],
-    };
+    final journalDate = JournalDemoDataset.operationalDate;
+    final journal = await repo.buildDailyJournal(journalDate);
 
-    for (final entry in samples.entries) {
-      final outletId = outlets[entry.key]!;
-      for (var i = 0; i < entry.value.length; i++) {
-        final shift = i + 1;
-        final general = entry.value[i];
-        if (general == 0) continue;
-        final extra = feeSamples[entry.key] != null && shift == 1
-            ? feeSamples[entry.key]![0]
-            : tuple(0, 0, 0, 0, 0);
-        await repo.createCollection(
-          outletId: outletId,
-          operationalDate: demoDate,
-          shiftNumber: shift,
-          amounts: CollectionAmounts(
-            manualFeesPiastres: extra.$1,
-            automaticFeesPiastres: extra.$2,
-            totalFeesPiastres: extra.$3,
-            generalTotalPiastres: general,
-            nfcPiastres: extra.$4,
-            visaPiastres: extra.$5,
-          ),
-        );
-      }
-    }
+    // 1. Daily journal PDF (A4 landscape, Arabic RTL, paper-form layout).
+    final journalPdf = await DailyJournalPdfService()
+        .buildJournalPdfBytes(journal);
+    await File('${reviewDir.path}/ragaa_journal_$journalDate.pdf')
+        .writeAsBytes(journalPdf, flush: true);
 
+    // 2. Daily journal Excel (same values, real formulas, RTL, print setup).
+    final journalXlsx =
+        ExcelExportService().buildJournalExcelBytes(journal);
+    await File('${reviewDir.path}/ragaa_journal_$journalDate.xlsx')
+        .writeAsBytes(journalXlsx, flush: true);
+
+    // 3. Full daily report PDF/Excel (weekly view keeps every sheet).
     final report = await repo.buildReport(
       ReportFilter(range: OperationalDateRange.daily(DateTime(2026, 11, 19))),
     );
+    final reportPdf = await PdfExportService().buildReportPdfBytes(report);
+    await File('${reviewDir.path}/ragaa_report_$journalDate.pdf')
+        .writeAsBytes(reportPdf, flush: true);
 
-    final pdfService = PdfExportService();
-    final pdfBytes = await pdfService.buildReportPdfBytes(report);
-    await File('${reviewDir.path}/ragaa_report_2026-11-19.pdf')
-        .writeAsBytes(pdfBytes, flush: true);
+    final reportXlsx = ExcelExportService().buildReportExcelBytes(report);
+    await File('${reviewDir.path}/ragaa_report_$journalDate.xlsx')
+        .writeAsBytes(reportXlsx, flush: true);
 
-    final excelService = ExcelExportService();
-    final excelBytes = excelService.buildReportExcelBytes(report);
-    await File('${reviewDir.path}/ragaa_report_2026-11-19.xlsx')
-        .writeAsBytes(excelBytes, flush: true);
+    // 4. Weekly report sample (multi-day, no single-day journal sheet).
+    final weekly = await repo.buildReport(
+      ReportFilter(
+        range: OperationalDateRange.weekly(DateTime(2026, 11, 19)),
+      ),
+    );
+    final weeklyPdf = await PdfExportService().buildReportPdfBytes(weekly);
+    await File('${reviewDir.path}/ragaa_report_weekly_2026-11-19.pdf')
+        .writeAsBytes(weeklyPdf, flush: true);
 
-    expect(pdfBytes.length, greaterThan(1000));
-    expect(excelBytes.length, greaterThan(1000));
+    expect(journalPdf.length, greaterThan(5000));
+    expect(journalXlsx.length, greaterThan(5000));
+    expect(reportPdf.length, greaterThan(5000));
+    expect(reportXlsx.length, greaterThan(5000));
+    expect(weeklyPdf.length, greaterThan(5000));
+
+    // The journal must be self-consistent even in the sample files.
+    expect(
+      journal.dayTotals.generalTotalPiastres,
+      journal.outletDayTotals.fold<int>(
+        0,
+        (sum, row) => sum + row.amounts.generalTotalPiastres,
+      ),
+    );
+
+    // ignore: avoid_print
+    print(
+      'review samples: ${journal.outletDayTotals.length} outlets, '
+      '${journal.recordedShiftsCount} recorded shifts, '
+      'grand total ${journal.dayTotals.generalTotalPiastres} piastres',
+    );
   });
 }
-
-(int, int, int, int, int) tuple(int a, int b, int c, int d, int e) =>
-    (a, b, c, d, e);

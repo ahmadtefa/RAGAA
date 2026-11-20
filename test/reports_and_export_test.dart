@@ -187,8 +187,12 @@ void main() {
         ExcelExportService.shiftsSheetName,
         ExcelExportService.dailySheetName,
         ExcelExportService.detailsSheetName,
-        ExcelExportService.dailyJournalSheetName,
       ]),
+    );
+    // The paper-form journal sheet belongs to single-day journals only.
+    expect(
+      decoded.tables.keys,
+      isNot(contains(ExcelExportService.dailyJournalSheetName)),
     );
 
     // Every sheet must be RTL.

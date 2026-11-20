@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../core/date_ranges.dart';
 import '../core/exceptions.dart';
 import '../core/formatters.dart';
 import '../models/audit_log_entry.dart';
 import '../models/collection_record.dart';
 import '../models/collection_amounts.dart';
+import '../models/daily_journal.dart';
 import '../models/outlet.dart';
 import '../models/outlet_shift.dart';
 import '../models/report_models.dart';
@@ -216,14 +218,15 @@ class RagaaRepository {
   // Outlets & Per-Outlet Shift Configuration
   // ---------------------------------------------------------------------------
 
-  /// Lists all outlets ordered by active status then creation order, including all
-  /// saved shift schedules.
+  /// Lists all outlets in the user-defined printable order (`sort_order`), with
+  /// the historical creation order as a stable tie-breaker, including all saved
+  /// shift schedules.
   Future<List<Outlet>> listOutlets({bool includeInactive = true}) async {
     final db = await appDatabase.database;
     final outletRows = await db.query(
       'outlets',
       where: includeInactive ? null : 'is_active = 1',
-      orderBy: 'is_active DESC, created_at ASC, id ASC',
+      orderBy: 'sort_order ASC, created_at ASC, id ASC',
     );
     if (outletRows.isEmpty) return const [];
 
@@ -305,6 +308,7 @@ class RagaaRepository {
 
     return db.transaction((txn) async {
       await _assertUniqueOutletName(txn, cleanName);
+      final nextOrder = await _nextOutletSortOrder(txn);
 
       await txn.insert('outlets', {
         'id': id,
@@ -312,6 +316,7 @@ class RagaaRepository {
         'shift_count': shiftCount,
         'is_active': 1,
         'notes': cleanNotes,
+        'sort_order': nextOrder,
         'created_at': now,
         'updated_at': now,
       });
@@ -463,6 +468,72 @@ class RagaaRepository {
       [outletId, shiftNumber],
     );
     return (rows.first['cnt'] as int?) ?? 0;
+  }
+
+  Future<int> _nextOutletSortOrder(DatabaseExecutor exec) async {
+    final rows = await exec.rawQuery(
+      'SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM outlets',
+    );
+    final maxOrder = (rows.isEmpty ? -1 : (rows.first['max_order'] as int?) ?? -1);
+    return maxOrder + 1;
+  }
+
+  /// Persists a new printable outlet order (first entry prints first).
+  ///
+  /// Historical collections, shifts and audit entries are never touched; only
+  /// the presentation order changes. The new order is written to `audit_logs`.
+  Future<List<Outlet>> reorderOutlets(
+    List<String> orderedOutletIds, {
+    String reason = '',
+  }) async {
+    final db = await appDatabase.database;
+    final now = _nowIso();
+    await db.transaction((txn) async {
+      final rows = await txn.query('outlets', columns: ['id', 'name']);
+      final existingIds = rows.map((row) => row['id'] as String).toSet();
+      final requested = <String>[
+        for (final id in orderedOutletIds)
+          if (existingIds.contains(id)) id,
+      ];
+      final requestedSet = requested.toSet();
+      for (final row in rows) {
+        final id = row['id'] as String;
+        if (!requestedSet.contains(id)) requested.add(id);
+      }
+      for (var index = 0; index < requested.length; index++) {
+        await txn.update(
+          'outlets',
+          {'sort_order': index},
+          where: 'id = ?',
+          whereArgs: [requested[index]],
+        );
+      }
+      await _insertAudit(
+        txn,
+        entityType: AuditEntityType.outlet,
+        entityId: 'outlet_order',
+        action: AuditAction.update,
+        summary: 'إعادة ترتيب المنافذ (${requested.length} منفذ) للطباعة والتقارير',
+        reason: reason.trim(),
+        afterMap: {'order': requested},
+        createdAt: now,
+      );
+    });
+    return listOutlets(includeInactive: true);
+  }
+
+  /// Moves a single outlet one position up (-1) or down (+1) in the printed
+  /// order and returns the refreshed outlet list.
+  Future<List<Outlet>> moveOutlet(String outletId, int delta) async {
+    final current = await listOutlets(includeInactive: true);
+    final index = current.indexWhere((outlet) => outlet.id == outletId);
+    if (index < 0 || delta == 0) return current;
+    final target = index + delta;
+    if (target < 0 || target >= current.length) return current;
+    final ids = current.map((outlet) => outlet.id).toList();
+    final moved = ids.removeAt(index);
+    ids.insert(target, moved);
+    return reorderOutlets(ids, reason: 'تحريك منفذ في ترتيب الطباعة');
   }
 
   Future<void> _assertUniqueOutletName(
@@ -973,7 +1044,31 @@ class RagaaRepository {
       byShift: byShift,
       byDay: byDay,
       details: details,
+      outlets: List.unmodifiable(outlets),
     );
+  }
+
+  /// Builds the complete electronic daily journal for one operational day.
+  ///
+  /// The same [DailyJournal] instance feeds the PDF, the Excel sheet and the
+  /// on-screen preview, which guarantees identical values everywhere.
+  Future<DailyJournal> buildDailyJournal(
+    String operationalDate, {
+    Set<String> outletIds = const {},
+    String title = kDailyJournalTitle,
+  }) async {
+    if (!isValidOperationalDate(operationalDate)) {
+      throw const ValidationException('التاريخ التشغيلي غير صالح');
+    }
+    final report = await buildReport(
+      ReportFilter(
+        range: OperationalDateRange.daily(
+          parseOperationalDate(operationalDate)!,
+        ),
+        outletIds: outletIds,
+      ),
+    );
+    return DailyJournal.fromReport(report, title: title);
   }
 
   /// Returns active outlet shifts that have not yet been recorded on [operationalDate].
