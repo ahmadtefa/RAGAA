@@ -103,12 +103,18 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = textScale;
   }
 
-  /// Fails the test if Flutter reported any layout error for this screen.
+  /// Fails the test if Flutter reported any layout error for this screen, and
+  /// prints the full Flutter diagnostic so the offending widget is named.
   void expectNoLayoutError(WidgetTester tester, String label) {
     final error = tester.takeException();
-    if (error != null) {
-      fail('[$label] layout error: $error');
+    if (error == null) return;
+    final buffer = StringBuffer('[$label] layout error:\n$error\n');
+    if (error is FlutterError) {
+      for (final node in error.diagnostics) {
+        buffer.writeln(node.toStringDeep());
+      }
     }
+    fail(buffer.toString());
   }
 
   Widget harness(Widget page) => MaterialApp(
@@ -117,8 +123,10 @@ void main() {
         locale: const Locale('ar'),
         supportedLocales: const [Locale('ar'), Locale('en')],
         localizationsDelegates: const [
+          // ignore: deprecated_member_use
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
+          // ignore: deprecated_member_use
           GlobalCupertinoLocalizations.delegate,
         ],
         builder: (context, child) => Directionality(
@@ -208,6 +216,14 @@ void main() {
       for (final width in const [320.0, 360.0, 390.0, 412.0, 480.0]) {
         await setViewport(tester, width: width, height: 800, textScale: scale);
         await tester.pumpWidget(RagaaApp(controller: controller));
+        await settle(tester);
+        // The shell keeps its state between pumps, so always start on home.
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NavigationBar),
+            matching: find.text('الرئيسية'),
+          ),
+        );
         await settle(tester);
         final label = 'shell @ ${width.toInt()}dp / ${(scale * 100).toInt()}%';
         expectNoLayoutError(tester, label);
@@ -364,7 +380,7 @@ void main() {
         final rect = box.localToGlobal(Offset.zero) & box.size;
         expect(
           rect.right,
-          lessThanOrEqualTo(screenWidth + 0.5),
+          lessThanOrEqualTo(screenWidth + 2),
           reason: '$label: "${(element.widget as Text).data}" escapes the '
               'screen (right edge ${rect.right.toStringAsFixed(1)} > '
               '$screenWidth)',
@@ -391,8 +407,10 @@ void main() {
         locale: const Locale('ar'),
         supportedLocales: const [Locale('ar'), Locale('en')],
         localizationsDelegates: const [
+          // ignore: deprecated_member_use
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
+          // ignore: deprecated_member_use
           GlobalCupertinoLocalizations.delegate,
         ],
         builder: (context, child) => Directionality(

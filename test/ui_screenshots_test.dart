@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -115,6 +116,8 @@ void main() {
     tester.view.physicalSize = Size(width * devicePixelRatio, height * devicePixelRatio);
     tester.view.devicePixelRatio = devicePixelRatio;
     tester.platformDispatcher.textScaleFactorTestValue = textScale;
+    // Rebuild from scratch so no drawer/route from the previous shot survives.
+    await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpWidget(
       RepaintBoundary(key: shotKey, child: RagaaApp(controller: controller)),
     );

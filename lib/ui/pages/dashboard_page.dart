@@ -347,15 +347,18 @@ class _DashboardPageState extends State<DashboardPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              s.shiftLabel,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
+                            Expanded(
+                              child: Text(
+                                s.shiftLabel,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
                             StatusBadge(
                               text: '${(ratio * 100).toStringAsFixed(1)}%',
                               color: AppTheme.brandPrimary,

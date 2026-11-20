@@ -527,8 +527,12 @@ class _ReportsPageState extends State<ReportsPage> {
   Widget _buildPeriodSpecificPicker() {
     switch (_periodType) {
       case ReportPeriodType.daily:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
+        // A wrap instead of a row: the two chevrons and the date button spread
+        // over two lines on a narrow phone instead of overflowing.
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             IconButton(
               tooltip: 'اليوم السابق',
@@ -581,8 +585,10 @@ class _ReportsPageState extends State<ReportsPage> {
 
       case ReportPeriodType.weekly:
         final w = OperationalDateRange.weekly(_weeklyAnchor);
-        return Row(
-          mainAxisSize: MainAxisSize.min,
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             IconButton(
               tooltip: 'الأسبوع السابق',
