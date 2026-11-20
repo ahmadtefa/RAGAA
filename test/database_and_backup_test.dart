@@ -9,6 +9,7 @@ import 'package:ragaa/core/formatters.dart';
 import 'package:ragaa/data/app_database.dart';
 import 'package:ragaa/data/backup_service.dart';
 import 'package:ragaa/data/ragaa_repository.dart';
+import 'package:ragaa/models/collection_amounts.dart';
 import 'package:ragaa/models/audit_log_entry.dart';
 import 'package:ragaa/models/outlet_shift.dart';
 import 'package:ragaa/models/report_models.dart';
@@ -101,6 +102,34 @@ void main() {
       repo.createOutlet(name: 'منفذ ثالث', shiftCount: 4),
       throwsA(isA<ValidationException>()),
     );
+  });
+
+  test(
+      'stores independent daily journal fields and derives scales without double counting payments',
+      () async {
+    final outlet =
+        await repo.createOutlet(name: 'منفذ اختبار اليومية', shiftCount: 2);
+
+    final saved = await repo.createCollection(
+      outletId: outlet.id,
+      operationalDate: '2026-11-20',
+      shiftNumber: 1,
+      amounts: const CollectionAmounts(
+        manualFeesPiastres: 200000,
+        automaticFeesPiastres: 300000,
+        totalFeesPiastres: 550000,
+        generalTotalPiastres: 1000000,
+        nfcPiastres: 100000,
+        visaPiastres: 50000,
+      ),
+    );
+
+    expect(saved.generalTotalPiastres, 1000000);
+    expect(saved.amountPiastres, 1000000);
+    expect(saved.totalFeesPiastres, 550000);
+    expect(saved.scalesTotalPiastres, 450000);
+    expect(saved.nfcPiastres, 100000);
+    expect(saved.visaPiastres, 50000);
   });
 
   test(
@@ -218,8 +247,7 @@ void main() {
   test(
       'strictly prevents duplicate collection and logs all edits in audit_logs',
       () async {
-    final outlet =
-        await repo.createOutlet(name: 'منفذ الدقي', shiftCount: 2);
+    final outlet = await repo.createOutlet(name: 'منفذ الدقي', shiftCount: 2);
 
     final created = await repo.createCollection(
       outletId: outlet.id,
@@ -316,8 +344,7 @@ void main() {
   test(
       'creates verified backups, rejects corrupted files, and restores safely with safety snapshot',
       () async {
-    final outlet =
-        await repo.createOutlet(name: 'منفذ الزمالك', shiftCount: 2);
+    final outlet = await repo.createOutlet(name: 'منفذ الزمالك', shiftCount: 2);
     await repo.createCollection(
       outletId: outlet.id,
       operationalDate: '2026-11-18',

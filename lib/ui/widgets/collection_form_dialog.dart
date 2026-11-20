@@ -5,6 +5,7 @@ import '../../core/app_theme.dart';
 import '../../core/exceptions.dart';
 import '../../core/formatters.dart';
 import '../../models/collection_record.dart';
+import '../../models/collection_amounts.dart';
 import '../../models/outlet.dart';
 import '../../state/ragaa_controller.dart';
 
@@ -59,6 +60,11 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
   late int _shiftNumber;
   late DateTime _operationalDate;
   late final TextEditingController _amountCtrl;
+  late final TextEditingController _manualFeesCtrl;
+  late final TextEditingController _automaticFeesCtrl;
+  late final TextEditingController _totalFeesCtrl;
+  late final TextEditingController _nfcCtrl;
+  late final TextEditingController _visaCtrl;
   late final TextEditingController _notesCtrl;
   late final TextEditingController _reasonCtrl;
 
@@ -82,26 +88,47 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
     if (editing != null) {
       _outletId = editing.outletId;
       _shiftNumber = editing.shiftNumber;
-      _operationalDate =
-          parseOperationalDate(editing.operationalDate) ?? dateOnly(DateTime.now());
+      _operationalDate = parseOperationalDate(editing.operationalDate) ??
+          dateOnly(DateTime.now());
       _amountCtrl = TextEditingController(
-        text: formatEditableAmount(editing.amountPiastres),
+        text: formatEditableAmount(editing.generalTotalPiastres),
       );
+      _manualFeesCtrl = TextEditingController(
+          text: formatEditableAmount(editing.manualFeesPiastres));
+      _automaticFeesCtrl = TextEditingController(
+          text: formatEditableAmount(editing.automaticFeesPiastres));
+      _totalFeesCtrl = TextEditingController(
+          text: formatEditableAmount(editing.totalFeesPiastres));
+      _nfcCtrl = TextEditingController(
+          text: editing.nfcPiastres == 0
+              ? ''
+              : formatEditableAmount(editing.nfcPiastres));
+      _visaCtrl = TextEditingController(
+          text: editing.visaPiastres == 0
+              ? ''
+              : formatEditableAmount(editing.visaPiastres));
       _notesCtrl = TextEditingController(text: editing.notes);
       _reasonCtrl = TextEditingController();
     } else {
       final outlets = _selectableOutlets;
       final preferredId = widget.initialOutletId;
-      _outletId = (preferredId != null && outlets.any((o) => o.id == preferredId))
-          ? preferredId
-          : outlets.first.id;
+      _outletId =
+          (preferredId != null && outlets.any((o) => o.id == preferredId))
+              ? preferredId
+              : outlets.first.id;
       final outlet = _currentOutlet();
       final preferredShift = widget.initialShiftNumber ?? 1;
-      _shiftNumber = (preferredShift >= 1 && preferredShift <= outlet.shiftCount)
-          ? preferredShift
-          : 1;
+      _shiftNumber =
+          (preferredShift >= 1 && preferredShift <= outlet.shiftCount)
+              ? preferredShift
+              : 1;
       _operationalDate = dateOnly(widget.initialDate ?? DateTime.now());
       _amountCtrl = TextEditingController();
+      _manualFeesCtrl = TextEditingController();
+      _automaticFeesCtrl = TextEditingController();
+      _totalFeesCtrl = TextEditingController();
+      _nfcCtrl = TextEditingController();
+      _visaCtrl = TextEditingController();
       _notesCtrl = TextEditingController();
       _reasonCtrl = TextEditingController();
       _checkDuplicate();
@@ -111,6 +138,11 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
   @override
   void dispose() {
     _amountCtrl.dispose();
+    _manualFeesCtrl.dispose();
+    _automaticFeesCtrl.dispose();
+    _totalFeesCtrl.dispose();
+    _nfcCtrl.dispose();
+    _visaCtrl.dispose();
     _notesCtrl.dispose();
     _reasonCtrl.dispose();
     super.dispose();
@@ -143,12 +175,25 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
 
   Future<void> _submit() async {
     final piastres = tryParsePiastres(_amountCtrl.text);
-    if (piastres == null) {
+    final manual = tryParsePiastres(_manualFeesCtrl.text) ?? 0;
+    final automatic = tryParsePiastres(_automaticFeesCtrl.text) ?? 0;
+    final totalFees = tryParsePiastres(_totalFeesCtrl.text) ?? 0;
+    final nfc = tryParsePiastres(_nfcCtrl.text) ?? 0;
+    final visa = tryParsePiastres(_visaCtrl.text) ?? 0;
+    if (piastres == null || piastres < totalFees) {
       setState(() {
         _errorText = 'أدخل مبلغًا صحيحًا بالجنيه (بحد أقصى رقمين عشريين)';
       });
       return;
     }
+    final amounts = CollectionAmounts(
+      manualFeesPiastres: manual,
+      automaticFeesPiastres: automatic,
+      totalFeesPiastres: totalFees,
+      generalTotalPiastres: piastres,
+      nfcPiastres: nfc,
+      visaPiastres: visa,
+    );
 
     setState(() {
       _saving = true;
@@ -159,7 +204,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
       if (_isEditing) {
         final updated = await widget.controller.updateCollection(
           collectionId: widget.editingRecord!.id,
-          newAmountPiastres: piastres,
+          newAmounts: amounts,
           notes: _notesCtrl.text,
           reason: _reasonCtrl.text.trim().isEmpty
               ? 'تعديل يدوي لسجل التحصيل'
@@ -174,7 +219,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
         outletId: _outletId,
         operationalDate: dateKey(_operationalDate),
         shiftNumber: _shiftNumber,
-        amountPiastres: piastres,
+        amounts: amounts,
         notes: _notesCtrl.text,
       );
       if (mounted) Navigator.of(context).pop(created);
@@ -194,7 +239,7 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
       try {
         final updated = await widget.controller.updateCollection(
           collectionId: dup.existing.id,
-          newAmountPiastres: piastres,
+          newAmounts: amounts,
           notes: _notesCtrl.text.trim().isEmpty
               ? dup.existing.notes
               : _notesCtrl.text,
@@ -437,8 +482,27 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
                   prefixIcon: const Icon(Icons.payments_outlined),
                   errorText: _errorText,
                 ),
+                onChanged: (_) => setState(() {}),
                 onSubmitted: (_) => _submit(),
               ),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(
+                    child: _amountField(_manualFeesCtrl, 'الرسوم اليدوية')),
+                const SizedBox(width: 8),
+                Expanded(
+                    child: _amountField(_automaticFeesCtrl, 'الرسوم الآلية')),
+              ]),
+              const SizedBox(height: 10),
+              _amountField(_totalFeesCtrl, 'إجمالي الرسوم (مستقل)'),
+              const SizedBox(height: 10),
+              _calculatedScalesField(),
+              const SizedBox(height: 10),
+              Row(children: [
+                Expanded(child: _amountField(_nfcCtrl, 'NFC (اختياري)')),
+                const SizedBox(width: 8),
+                Expanded(child: _amountField(_visaCtrl, 'VISA (اختياري)')),
+              ]),
               const SizedBox(height: 12),
               TextField(
                 key: const Key('collection_notes_field'),
@@ -480,6 +544,30 @@ class _CollectionFormDialogState extends State<CollectionFormDialog> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _amountField(TextEditingController controller, String label) =>
+      TextField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+            labelText: label, hintText: '0.00', suffixText: 'ج.م'),
+      );
+
+  Widget _calculatedScalesField() {
+    final general = tryParsePiastres(_amountCtrl.text) ?? 0;
+    final fees = tryParsePiastres(_totalFeesCtrl.text) ?? 0;
+    final scales = general - fees;
+    return TextFormField(
+      readOnly: true,
+      initialValue: formatEditableAmount(scales < 0 ? 0 : scales),
+      decoration: const InputDecoration(
+        labelText: 'إجمالي الموازين (محسوب)',
+        suffixText: 'ج.م',
+        prefixIcon: Icon(Icons.calculate_outlined),
+      ),
     );
   }
 }

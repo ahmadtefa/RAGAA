@@ -11,6 +11,7 @@ import '../data/ragaa_repository.dart';
 import '../models/audit_log_entry.dart';
 import '../models/backup_info.dart';
 import '../models/collection_record.dart';
+import '../models/collection_amounts.dart';
 import '../models/outlet.dart';
 import '../models/outlet_shift.dart';
 import '../models/report_models.dart';
@@ -170,7 +171,8 @@ class RagaaController extends ChangeNotifier {
     required String outletId,
     required String operationalDate,
     required int shiftNumber,
-    required int amountPiastres,
+    int? amountPiastres,
+    CollectionAmounts? amounts,
     String notes = '',
   }) async {
     final created = await repository.createCollection(
@@ -178,6 +180,7 @@ class RagaaController extends ChangeNotifier {
       operationalDate: operationalDate,
       shiftNumber: shiftNumber,
       amountPiastres: amountPiastres,
+      amounts: amounts,
       notes: notes,
     );
     await refreshAll();
@@ -186,13 +189,15 @@ class RagaaController extends ChangeNotifier {
 
   Future<CollectionRecord> updateCollection({
     required int collectionId,
-    required int newAmountPiastres,
+    int? newAmountPiastres,
+    CollectionAmounts? newAmounts,
     String? notes,
     String reason = '',
   }) async {
     final updated = await repository.updateCollection(
       collectionId: collectionId,
       newAmountPiastres: newAmountPiastres,
+      newAmounts: newAmounts,
       notes: notes,
       reason: reason,
     );
@@ -348,7 +353,8 @@ class RagaaController extends ChangeNotifier {
     isBusy = true;
     notifyListeners();
     try {
-      final info = await backupService.createBackup(destinationPath: chosenPath);
+      final info =
+          await backupService.createBackup(destinationPath: chosenPath);
       await refreshAll();
       return info;
     } finally {

@@ -7,6 +7,7 @@ import '../core/exceptions.dart';
 import '../core/formatters.dart';
 import '../models/audit_log_entry.dart';
 import '../models/collection_record.dart';
+import '../models/collection_amounts.dart';
 import '../models/outlet.dart';
 import '../models/outlet_shift.dart';
 import '../models/report_models.dart';
@@ -285,7 +286,8 @@ class RagaaRepository {
       throw const ValidationException('يرجى إدخال اسم المنفذ');
     }
     if (cleanName.length > 100) {
-      throw const ValidationException('اسم المنفذ طويل جدًا (الحد الأقصى 100 حرف)');
+      throw const ValidationException(
+          'اسم المنفذ طويل جدًا (الحد الأقصى 100 حرف)');
     }
     if (shiftCount != 2 && shiftCount != 3) {
       throw const ValidationException('عدد الورديات يجب أن يكون 2 أو 3');
@@ -359,7 +361,8 @@ class RagaaRepository {
       throw const ValidationException('يرجى إدخال اسم المنفذ');
     }
     if (cleanName.length > 100) {
-      throw const ValidationException('اسم المنفذ طويل جدًا (الحد الأقصى 100 حرف)');
+      throw const ValidationException(
+          'اسم المنفذ طويل جدًا (الحد الأقصى 100 حرف)');
     }
     if (shiftCount != 2 && shiftCount != 3) {
       throw const ValidationException('عدد الورديات يجب أن يكون 2 أو 3');
@@ -477,7 +480,8 @@ class RagaaRepository {
       if (excludeOutletId != null && id == excludeOutletId) continue;
       final existingName = (row['name'] as String).trim().toLowerCase();
       if (existingName == target) {
-        throw ValidationException('يوجد منفذ آخر مسجل بنفس الاسم "$candidateName"');
+        throw ValidationException(
+            'يوجد منفذ آخر مسجل بنفس الاسم "$candidateName"');
       }
     }
   }
@@ -578,6 +582,12 @@ class RagaaRepository {
       c.operational_date,
       c.shift_number,
       c.amount_piastres,
+      c.manual_fees_piastres,
+      c.automatic_fees_piastres,
+      c.total_fees_piastres,
+      c.general_total_piastres,
+      c.nfc_piastres,
+      c.visa_piastres,
       c.shift_label_snapshot,
       c.shift_start_snapshot,
       c.shift_end_snapshot,
@@ -634,13 +644,21 @@ class RagaaRepository {
     required String outletId,
     required String operationalDate,
     required int shiftNumber,
-    required int amountPiastres,
+    int? amountPiastres,
+    CollectionAmounts? amounts,
     String notes = '',
   }) async {
     if (!isValidOperationalDate(operationalDate)) {
       throw const ValidationException('التاريخ التشغيلي غير صالح');
     }
-    if (amountPiastres < 0 || amountPiastres > kMaxAmountPiastres) {
+    final normalizedAmounts = amounts ??
+        CollectionAmounts(
+          manualFeesPiastres: 0,
+          automaticFeesPiastres: 0,
+          totalFeesPiastres: 0,
+          generalTotalPiastres: amountPiastres ?? -1,
+        );
+    if (!normalizedAmounts.isValid) {
       throw const ValidationException('مبلغ التحصيل غير صالح');
     }
 
@@ -683,7 +701,8 @@ class RagaaRepository {
         'outlet_id': outletId,
         'operational_date': operationalDate,
         'shift_number': shiftNumber,
-        'amount_piastres': amountPiastres,
+        'amount_piastres': normalizedAmounts.generalTotalPiastres,
+        ...normalizedAmounts.toDatabaseMap(),
         'shift_label_snapshot': labelSnapshot,
         'shift_start_snapshot': startSnapshot,
         'shift_end_snapshot': endSnapshot,
@@ -703,7 +722,7 @@ class RagaaRepository {
         outletName: created.outletName,
         operationalDate: created.operationalDate,
         shiftNumber: created.shiftNumber,
-        newAmountPiastres: created.amountPiastres,
+        newAmountPiastres: created.generalTotalPiastres,
         summary:
             'تسجيل تحصيل "${created.outletName}" — ${created.shiftTitle} (${created.operationalDate}) بمبلغ ${formatMoney(created.amountPiastres, withCurrency: true)}',
         afterMap: created.toAuditMap(),
@@ -719,11 +738,15 @@ class RagaaRepository {
   /// immutable entry to `audit_logs`.
   Future<CollectionRecord> updateCollection({
     required int collectionId,
-    required int newAmountPiastres,
+    int? newAmountPiastres,
+    CollectionAmounts? newAmounts,
     String? notes,
     String reason = '',
   }) async {
-    if (newAmountPiastres < 0 || newAmountPiastres > kMaxAmountPiastres) {
+    if (newAmounts == null &&
+        (newAmountPiastres == null ||
+            newAmountPiastres < 0 ||
+            newAmountPiastres > kMaxAmountPiastres)) {
       throw const ValidationException('مبلغ التحصيل الجديد غير صالح');
     }
 
@@ -737,8 +760,22 @@ class RagaaRepository {
         throw const ValidationException('سجل التحصيل المطلوب تعديله غير موجود');
       }
 
+      final normalizedAmounts = newAmounts ??
+          CollectionAmounts(
+            manualFeesPiastres: before.manualFeesPiastres,
+            automaticFeesPiastres: before.automaticFeesPiastres,
+            totalFeesPiastres: before.totalFeesPiastres,
+            generalTotalPiastres:
+                newAmountPiastres ?? before.generalTotalPiastres,
+            nfcPiastres: before.nfcPiastres,
+            visaPiastres: before.visaPiastres,
+          );
+      if (!normalizedAmounts.isValid) {
+        throw const ValidationException('Invalid updated collection amount');
+      }
       final nextNotes = notes != null ? notes.trim() : before.notes;
-      final amountChanged = before.amountPiastres != newAmountPiastres;
+      final amountChanged = before.amounts.toDatabaseMap().toString() !=
+          normalizedAmounts.toDatabaseMap().toString();
       final notesChanged = before.notes != nextNotes;
 
       if (!amountChanged && !notesChanged) {
@@ -748,7 +785,8 @@ class RagaaRepository {
       await txn.update(
         'collections',
         {
-          'amount_piastres': newAmountPiastres,
+          'amount_piastres': normalizedAmounts.generalTotalPiastres,
+          ...normalizedAmounts.toDatabaseMap(),
           'notes': nextNotes,
           'revision': before.revision + 1,
           'updated_at': now,
@@ -908,9 +946,8 @@ class RagaaRepository {
         return a.outletName.compareTo(b.outletName);
       });
 
-    final shiftsToInclude = filter.shiftNumber != null
-        ? [filter.shiftNumber!]
-        : const [1, 2, 3];
+    final shiftsToInclude =
+        filter.shiftNumber != null ? [filter.shiftNumber!] : const [1, 2, 3];
     final byShift = shiftsToInclude
         .map(
           (s) => ShiftReportRow(

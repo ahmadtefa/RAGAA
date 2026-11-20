@@ -7,7 +7,7 @@ import 'package:sqflite/sqflite.dart';
 import 'database_factory_init.dart';
 
 /// Current SQLite schema version.
-const int kDatabaseSchemaVersion = 1;
+const int kDatabaseSchemaVersion = 2;
 
 /// Required tables checked during backup verification.
 const List<String> kRequiredDatabaseTables = [
@@ -107,6 +107,9 @@ class AppDatabase {
           if (oldVersion < 1) {
             await _createSchemaV1(db);
           }
+          if (oldVersion < 2) {
+            await _migrateToV2(db);
+          }
         },
       ),
     );
@@ -157,6 +160,12 @@ class AppDatabase {
         operational_date TEXT NOT NULL,
         shift_number INTEGER NOT NULL CHECK (shift_number IN (1, 2, 3)),
         amount_piastres INTEGER NOT NULL CHECK (amount_piastres >= 0),
+        manual_fees_piastres INTEGER NOT NULL DEFAULT 0 CHECK (manual_fees_piastres >= 0),
+        automatic_fees_piastres INTEGER NOT NULL DEFAULT 0 CHECK (automatic_fees_piastres >= 0),
+        total_fees_piastres INTEGER NOT NULL DEFAULT 0 CHECK (total_fees_piastres >= 0),
+        general_total_piastres INTEGER NOT NULL DEFAULT 0 CHECK (general_total_piastres >= 0),
+        nfc_piastres INTEGER NOT NULL DEFAULT 0 CHECK (nfc_piastres >= 0),
+        visa_piastres INTEGER NOT NULL DEFAULT 0 CHECK (visa_piastres >= 0),
         shift_label_snapshot TEXT NOT NULL DEFAULT '',
         shift_start_snapshot TEXT NOT NULL DEFAULT '',
         shift_end_snapshot TEXT NOT NULL DEFAULT '',
@@ -219,7 +228,10 @@ class AppDatabase {
 
     batch.insert(
       'app_meta',
-      {'key': 'schema_created_at', 'value': DateTime.now().toUtc().toIso8601String()},
+      {
+        'key': 'schema_created_at',
+        'value': DateTime.now().toUtc().toIso8601String()
+      },
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
     batch.insert(
@@ -229,6 +241,28 @@ class AppDatabase {
     );
 
     await batch.commit(noResult: true);
+  }
+
+  /// Adds daily-journal fields without rewriting or discarding existing rows.
+  /// A legacy single amount is the historical general total; all unavailable
+  /// component values remain zero.
+  static Future<void> _migrateToV2(Database db) async {
+    await db.transaction((txn) async {
+      await txn.execute(
+          'ALTER TABLE collections ADD COLUMN manual_fees_piastres INTEGER NOT NULL DEFAULT 0');
+      await txn.execute(
+          'ALTER TABLE collections ADD COLUMN automatic_fees_piastres INTEGER NOT NULL DEFAULT 0');
+      await txn.execute(
+          'ALTER TABLE collections ADD COLUMN total_fees_piastres INTEGER NOT NULL DEFAULT 0');
+      await txn.execute(
+          'ALTER TABLE collections ADD COLUMN general_total_piastres INTEGER NOT NULL DEFAULT 0');
+      await txn.execute(
+          'ALTER TABLE collections ADD COLUMN nfc_piastres INTEGER NOT NULL DEFAULT 0');
+      await txn.execute(
+          'ALTER TABLE collections ADD COLUMN visa_piastres INTEGER NOT NULL DEFAULT 0');
+      await txn.execute(
+          'UPDATE collections SET general_total_piastres = amount_piastres');
+    });
   }
 
   /// Flushes WAL frames cleanly into the main database file.
