@@ -1,8 +1,5 @@
 Analyzing RAGAA...                                              
 
-   info • Unnecessary use of string interpolation. Try replacing the string literal with the variable name • lib/services/daily_journal_pdf_service.dart:237:18 • unnecessary_string_interpolations
-  error • The argument type 'double' can't be assigned to the parameter type 'int?'.  • lib/services/excel_export_service.dart:437:15 • argument_type_not_assignable
-warning • Unused import: 'package:ragaa/models/daily_journal.dart'. Try removing the import directive • test/schema_migration_test.dart:7:8 • unused_import
-  error • The method 'close' isn't defined for the type 'RagaaRepository'. Try correcting the name to the name of an existing method, or defining a method named 'close' • test/schema_migration_test.dart:203:16 • undefined_method
+  error • Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it • lib/services/excel_export_service.dart:1325:1 • expected_executable
 
-4 issues found. (ran in 7.6s)
+1 issue found. (ran in 8.7s)
