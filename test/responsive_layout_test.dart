@@ -112,15 +112,14 @@ void main() {
   /// Full Flutter diagnostics for every reported error, so a failure names the
   /// exact widget and source line that overflowed.
   final layoutDiagnostics = <String>[];
-  var errorHookInstalled = false;
 
+  /// Re-installed for every test: the test binding resets `FlutterError.onError`
+  /// between tests, which would otherwise drop the diagnostics.
   void installErrorCapture() {
-    if (errorHookInstalled) return;
-    errorHookInstalled = true;
-    final original = FlutterError.onError;
+    final previous = FlutterError.onError;
     FlutterError.onError = (details) {
       layoutDiagnostics.add(details.toString());
-      original?.call(details);
+      previous?.call(details);
     };
   }
 
@@ -138,7 +137,7 @@ void main() {
     if (layoutDiagnostics.isNotEmpty) {
       buffer.writeln('--- first reported diagnostic ---');
       final lines = layoutDiagnostics.first.split('\n');
-      buffer.writeln(lines.take(24).join('\n'));
+      buffer.writeln(lines.take(30).join('\n'));
     }
     layoutDiagnostics.clear();
     fail(buffer.toString());
