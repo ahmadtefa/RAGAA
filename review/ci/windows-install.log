@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20261120222832
+Start time: 20261120233610
 Username: runnervmbpeip\runneradmin
 RunAs User: runnervmbpeip\runneradmin
 Configuration Name: 
 Machine: runnervmbpeip (Microsoft Windows NT 10.0.26100.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\ca6a4901-9665-49bc-9157-dd686d733d26.ps1'
-Process ID: 872
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\0e34c054-f342-4dc9-8137-590931114286.ps1'
+Process ID: 3464
 PSVersion: 7.6.10
 PSEdition: Core
 GitCommitId: 7.6.10
@@ -36,7 +36,7 @@ D:\a\_temp\RAGAA-installed\unins000.dat                     6963
 D:\a\_temp\RAGAA-installed\unins000.exe                     4403458
 D:\a\_temp\RAGAA-installed\url_launcher_windows_plugin.dll  97792
 D:\a\_temp\RAGAA-installed\data\flutter_assets
-D:\a\_temp\RAGAA-installed\data\app.so                      10732504
+D:\a\_temp\RAGAA-installed\data\app.so                      10748888
 D:\a\_temp\RAGAA-installed\data\icudtl.dat                  864880
 
 Start menu folder: C:\Users\runneradmin\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\RAGAA
@@ -51,5 +51,5 @@ Uninstaller exit code: 0
 Installer smoke test passed.
 **********************
 PowerShell transcript end
-End time: 20261120222841
+End time: 20261120233622
 **********************
