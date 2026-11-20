@@ -7,54 +7,16 @@ import 'package:pdf/widgets.dart' as pw;
 import '../core/formatters.dart';
 import '../models/daily_journal.dart';
 
-/// Renders the daily journal as a print-ready, right-to-left A4 landscape PDF
-/// that mirrors the real paper form used at the collection office.
-///
-/// Design rules taken from the paper form:
-/// - title + weekday + Gregorian date header;
-/// - RTL column order: البيان | الرسوم اليدوية | الرسوم الآلية | إجمالي الرسوم |
-///   إجمالي الموازين | NFC | VISA | الإجمالي العام;
-/// - one block per shift followed by its yellow «إجمالي الوردية» row;
-/// - a mandatory «إجمالي اليوم لكل منفذ» block (one independent row per outlet);
-/// - a brown-tinted «إجمالي الموازين» column and purple total rows.
-///
-/// Excluded deliberately: the green grouping of the first five outlets,
-/// «مسلم الإداري», «مسلم الرقابة», «المتبقي» and the cash hand-over columns.
-///
-/// Layout safety: every column has a fixed width, the column header row is a
-/// repeating row of the table (`TableRow.repeat`), and the table is allowed to
-/// span as many pages as needed, so extra outlets or shifts never clip data.
+/// One PDF source for export, printing and the in-app preview.
 class DailyJournalPdfService {
   pw.Font? _regularFont;
   pw.Font? _boldFont;
-
-  // ---------------------------------------------------------------------------
-  // Palette (kept close to the printed form)
-  // ---------------------------------------------------------------------------
-  static const PdfColor _headerBg = PdfColor.fromInt(0xFF0F5C54);
-  static const PdfColor _headerText = PdfColors.white;
-  static const PdfColor _border = PdfColor.fromInt(0xFF1F2937);
-  static const PdfColor _ink = PdfColor.fromInt(0xFF111827);
-  static const PdfColor _muted = PdfColor.fromInt(0xFF475569);
-  static const PdfColor _bandBg = PdfColor.fromInt(0xFFE3EFEC);
-  static const PdfColor _yellow = PdfColor.fromInt(0xFFF7EC00);
-  static const PdfColor _purple = PdfColor.fromInt(0xFFE2D9EC);
-  static const PdfColor _scalesCell = PdfColor.fromInt(0xFFD9BE8A);
-
-  static const double _nameColumnWidth = 190;
-  static const double _horizontalMargin = 14;
-  static const double _verticalMargin = 14;
-
-  static const List<String> _columnHeaders = <String>[
-    'البيان',
-    'الرسوم اليدوية',
-    'الرسوم الآلية',
-    'إجمالي الرسوم',
-    'إجمالي الموازين',
-    'NFC',
-    'VISA',
-    'الإجمالي العام',
-  ];
+  static const _green = PdfColor.fromInt(0xFF38743A);
+  static const _yellow = PdfColor.fromInt(0xFFFFEB35);
+  static const _purple = PdfColor.fromInt(0xFFE2DAE9);
+  static const _scales = PdfColor.fromInt(0xFFDDC19B);
+  static const _band = PdfColor.fromInt(0xFFF2F0EE);
+  static const _height = 15.5;
 
   Future<(pw.Font regular, pw.Font bold)> _loadFonts() async {
     if (_regularFont != null && _boldFont != null) {
@@ -86,13 +48,12 @@ class DailyJournalPdfService {
       pw.MultiPage(
         pageFormat: pageFormat,
         margin: const pw.EdgeInsets.symmetric(
-          horizontal: _horizontalMargin,
-          vertical: _verticalMargin,
+          horizontal: 19,
+          vertical: 12,
         ),
-        textDirection: pw.TextDirection.rtl,
-        header: (context) => _buildPageHeader(context, journal),
-        footer: _buildPageFooter,
-        build: (context) => <pw.Widget>[_buildJournalTable(journal)],
+        textDirection: pw.TextDirection.ltr,
+        header: (_) => _header(journal),
+        build: (_) => _rows(journal),
       ),
     );
 
@@ -111,304 +72,90 @@ class DailyJournalPdfService {
     return file;
   }
 
-  // ---------------------------------------------------------------------------
-  // Page chrome
-  // ---------------------------------------------------------------------------
+  // Physical widths follow the printed sheet from its left edge to the right.
+  static const _widths = [11, 14, 15, 15, 19, 19, 15, 15, 24];
+  double _width(int units) => (pageFormat.width - 38) * units / 147;
 
-  pw.Widget _buildPageHeader(pw.Context context, DailyJournal journal) {
-    final isFirstPage = context.pageNumber == 1;
+  pw.Widget _cell(String text, int units, {double height = _height,
+      PdfColor? fill, bool bold = false, bool right = false}) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 6),
-      padding: const pw.EdgeInsets.only(bottom: 5),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          bottom: pw.BorderSide(color: _headerBg, width: 1.4),
-        ),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-        children: [
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text(
-                journal.title,
-                style: pw.TextStyle(
-                  fontSize: isFirstPage ? 16 : 11,
-                  fontWeight: pw.FontWeight.bold,
-                  color: _headerBg,
-                ),
-              ),
-              if (isFirstPage)
-                pw.Text(
-                  journal.headerLine,
-                  style: pw.TextStyle(
-                    fontSize: 12,
-                    fontWeight: pw.FontWeight.bold,
-                    color: _ink,
-                  ),
-                )
-              else
-                pw.Text(
-                  'تكملة — ${journal.headerLine}',
-                  style: const pw.TextStyle(fontSize: 9, color: _muted),
-                ),
-              pw.Text(
-                isFirstPage
-                    ? 'تاريخ الطباعة: ${formatTimestamp(journal.generatedAt)}'
-                    : 'صفحة ${context.pageNumber}',
-                style: const pw.TextStyle(fontSize: 8.5, color: _muted),
-              ),
-            ],
-          ),
-          if (isFirstPage) ...[
-            pw.SizedBox(height: 3),
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text(
-                  'المنافذ: ${journal.outletsFilterLabel} (${journal.outletCount} منفذ)',
-                  style: const pw.TextStyle(fontSize: 8.5, color: _muted),
-                ),
-                pw.Text(
-                  'الورديات المفعّلة: ${journal.configuredShiftCount}',
-                  style: const pw.TextStyle(fontSize: 8.5, color: _muted),
-                ),
-                pw.Text(
-                  'الورديات المسجّلة: ${journal.recordedShiftsCount}',
-                  style: const pw.TextStyle(fontSize: 8.5, color: _muted),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
+      width: _width(units), height: height,
+      alignment: right ? pw.Alignment.centerRight : pw.Alignment.center,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 2, vertical: 0.3),
+      decoration: pw.BoxDecoration(color: fill,
+        border: pw.Border.all(width: 0.35, color: PdfColors.black)),
+      child: text.isEmpty ? null : pw.FittedBox(fit: pw.BoxFit.scaleDown, child: pw.Text(text,
+        textDirection: RegExp(r'[\u0600-\u06ff]').hasMatch(text)
+            ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+        style: pw.TextStyle(fontSize: 10,
+          color: fill == _green ? PdfColors.white : PdfColors.black,
+          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal))),
     );
   }
 
-  pw.Widget _buildPageFooter(pw.Context context) => pw.Container(
-        margin: const pw.EdgeInsets.only(top: 5),
-        padding: const pw.EdgeInsets.only(top: 4),
-        decoration: const pw.BoxDecoration(
-          border: pw.Border(top: pw.BorderSide(color: _border, width: 0.6)),
-        ),
-        child: pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            pw.Text(
-              'RAGAA — نظام إدارة تحصيل المنافذ',
-              style: const pw.TextStyle(fontSize: 8, color: _muted),
-            ),
-            pw.Text(
-              'صفحة ${context.pageNumber} من ${context.pagesCount}',
-              style: const pw.TextStyle(fontSize: 8, color: _muted),
-            ),
-          ],
-        ),
-      );
-
-  // ---------------------------------------------------------------------------
-  // Table
-  // ---------------------------------------------------------------------------
-
-  Map<int, pw.TableColumnWidth> _columnWidths() {
-    final available = pageFormat.availableWidth -
-        (_horizontalMargin * 2);
-    final moneyWidth = (available - _nameColumnWidth) / 7;
-    // Visual (left-to-right) order is the mirror of the logical Arabic order so
-    // that «البيان» always sits on the far right of the page in RTL.
-    return <int, pw.TableColumnWidth>{
-      0: pw.FixedColumnWidth(moneyWidth), // الإجمالي العام
-      1: pw.FixedColumnWidth(moneyWidth), // VISA
-      2: pw.FixedColumnWidth(moneyWidth), // NFC
-      3: pw.FixedColumnWidth(moneyWidth), // إجمالي الموازين
-      4: pw.FixedColumnWidth(moneyWidth), // إجمالي الرسوم
-      5: pw.FixedColumnWidth(moneyWidth), // الرسوم الآلية
-      6: pw.FixedColumnWidth(moneyWidth), // الرسوم اليدوية
-      7: pw.FixedColumnWidth(_nameColumnWidth), // البيان
-    };
+  pw.Widget _header(DailyJournal journal) {
+    const h = 24.0;
+    return pw.Column(children: [
+      pw.Text('${journal.title} ${journal.headerLine}', textDirection: pw.TextDirection.rtl,
+          style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+      pw.Row(children: [
+        _cell('إجمالي عام', 25, height: h, bold: true),
+        _cell('VISA', 15, height: h, bold: true),
+        _cell('NFC', 15, height: h, bold: true),
+        _cell('إجمالي الموازين', 19, height: h, bold: true),
+        _cell('إجمالي الرسوم', 19, height: h, bold: true),
+        pw.Column(children: [
+          _cell('رسوم', 30, height: h / 2, bold: true),
+          pw.Row(children: [
+            _cell('آلي', 15, height: h / 2, bold: true),
+            _cell('يدوي', 15, height: h / 2, bold: true),
+          ]),
+        ]),
+        _cell('البيان', 24, height: h, bold: true),
+      ]),
+    ]);
   }
 
-  pw.Widget _buildJournalTable(DailyJournal journal) {
-    final rows = <pw.TableRow>[
-      _headerRow(),
-      for (final section in journal.sections) ...[
-        _bandRow(section.shiftLabel),
-        for (final row in section.rows) _dataRow(row),
-        _totalsRow(
-          'إجمالي ${defaultShiftLabel(section.shiftNumber)}',
-          section.totals,
-          _yellow,
-        ),
-      ],
-      _bandRow('إجمالي اليوم لكل منفذ'),
-      for (final total in journal.outletDayTotals) _dayTotalRow(total),
-      _totalsRow('الإجمالي العام لليوم', journal.dayTotals, _purple),
-    ];
-
-    return pw.Table(
-      border: pw.TableBorder.all(color: _border, width: 0.6),
-      columnWidths: _columnWidths(),
-      defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-      children: rows,
-    );
+  pw.Widget _line(String label, JournalAmounts? amounts,
+      {bool split = false, bool total = false}) {
+    final values = amounts?.columnsInOrder.reversed.map(formatMoney).toList()
+        ?? List<String>.filled(7, '');
+    return pw.Row(children: [
+      for (var i = 0; i < values.length; i++)
+        _cell(values[i], i == 0 && !split ? 25 : _widths[i + 1],
+            bold: total, fill: total ? (i == 0 ? _yellow : _purple)
+                : i == 3 ? _scales : null),
+      _cell(label, 24, bold: total, fill: total ? _purple : null),
+    ]);
   }
 
-  pw.TableRow _headerRow() => pw.TableRow(
-        repeat: true,
-        decoration: const pw.BoxDecoration(color: _headerBg),
-        children: [
-          for (final header in _columnHeaders.reversed)
-            _cell(
-              header,
-              bold: true,
-              color: _headerText,
-              rightAligned: header == 'البيان',
-              fontSize: 8.8,
-            ),
-        ],
-      );
-
-  pw.TableRow _bandRow(String label) => pw.TableRow(
-        decoration: const pw.BoxDecoration(color: _bandBg),
-        children: [
-          for (var index = 0; index < 7; index++) _cell(''),
-          _cell(
-            label,
-            bold: true,
-            color: _headerBg,
-            rightAligned: true,
-            fontSize: 9,
-          ),
-        ],
-      );
-
-  pw.TableRow _dataRow(JournalRow row) {
-    final values = row.hasRecord
-        ? <String>[
-            formatMoney(row.amounts.manualFeesPiastres),
-            formatMoney(row.amounts.automaticFeesPiastres),
-            formatMoney(row.amounts.totalFeesPiastres),
-            formatMoney(row.amounts.scalesTotalPiastres),
-            row.amounts.nfcPiastres == 0
-                ? formatMoney(0)
-                : formatMoney(row.amounts.nfcPiastres),
-            row.amounts.visaPiastres == 0
-                ? formatMoney(0)
-                : formatMoney(row.amounts.visaPiastres),
-            formatMoney(row.amounts.generalTotalPiastres),
-          ]
-        : <String>['', '', '', '', '', '', ''];
-    return pw.TableRow(
-      children: _valueCells(
-        label: row.outletName,
-        values: values,
-        labelRightAligned: true,
-      ),
-    );
-  }
-
-  pw.TableRow _dayTotalRow(JournalOutletDayTotal total) {
-    final values = <String>[
-      formatMoney(total.amounts.manualFeesPiastres),
-      formatMoney(total.amounts.automaticFeesPiastres),
-      formatMoney(total.amounts.totalFeesPiastres),
-      formatMoney(total.amounts.scalesTotalPiastres),
-      formatMoney(total.amounts.nfcPiastres),
-      formatMoney(total.amounts.visaPiastres),
-      formatMoney(total.amounts.generalTotalPiastres),
-    ];
-    return pw.TableRow(
-      decoration: const pw.BoxDecoration(color: _purple),
-      children: _valueCells(
-        label: total.outletName,
-        values: values,
-        labelRightAligned: true,
-        bold: true,
-      ),
-    );
-  }
-
-  pw.TableRow _totalsRow(String label, JournalAmounts amounts, PdfColor fill) {
-    final values = <String>[
-      formatMoney(amounts.manualFeesPiastres),
-      formatMoney(amounts.automaticFeesPiastres),
-      formatMoney(amounts.totalFeesPiastres),
-      formatMoney(amounts.scalesTotalPiastres),
-      formatMoney(amounts.nfcPiastres),
-      formatMoney(amounts.visaPiastres),
-      formatMoney(amounts.generalTotalPiastres),
-    ];
-    return pw.TableRow(
-      decoration: pw.BoxDecoration(color: fill),
-      children: _valueCells(
-        label: label,
-        values: values,
-        labelRightAligned: true,
-        bold: true,
-        fill: fill,
-      ),
-    );
-  }
-
-  /// Builds the eight visual cells (mirrored order) for a journal row.
-  List<pw.Widget> _valueCells({
-    required String label,
-    required List<String> values,
-    bool labelRightAligned = false,
-    bool bold = false,
-    PdfColor? fill,
-  }) {
-    final cells = <pw.Widget>[];
-    // values[0] = الرسوم اليدوية ... values[6] = الإجمالي العام (logical order),
-    // so the visual order (LTR) is values reversed, then the label last (right).
-    for (var index = values.length - 1; index >= 0; index--) {
-      final isScales = index == 3;
-      cells.add(
-        _cell(
-          values[index],
-          bold: bold,
-          fill: fill,
-          rowBand: isScales && fill == null ? _scalesCell : null,
-          fontSize: 8.6,
-        ),
-      );
+  List<pw.Widget> _rows(DailyJournal journal) {
+    final rows = <pw.Widget>[];
+    for (final section in journal.sections) {
+      final shift = defaultShiftLabel(section.shiftNumber);
+      final count = section.greenRowCount;
+      // Keep the five rows and their vertically merged cell on the same page.
+      rows.add(pw.Container(child: pw.Column(children: [
+        _cell(shift, 147, right: true, bold: true, fill: _band),
+        if (count > 0) pw.Row(children: [
+          _cell(formatMoney(section.firstFivePiastres), 11,
+              height: _height * count, fill: _green, bold: true),
+          pw.Column(children: [
+            for (final row in section.rows.take(count))
+              _line(row.outletName, row.hasRecord ? row.amounts : null, split: true),
+          ]),
+        ]),
+      ])));
+      for (final row in section.rows.skip(count)) {
+        rows.add(_line(row.outletName, row.hasRecord ? row.amounts : null));
+      }
+      rows.add(_line('إجمالي $shift', section.totals, total: true));
     }
-    cells.add(
-      _cell(
-        label,
-        bold: bold,
-        fill: fill,
-        rightAligned: labelRightAligned,
-        fontSize: 8.8,
-      ),
-    );
-    return cells;
+    rows.add(_cell('إجمالي اليوم', 147, right: true, bold: true, fill: _band));
+    for (final outlet in journal.outletDayTotals) {
+      rows.add(_line(outlet.outletName, outlet.amounts));
+    }
+    rows.add(_line('الإجمالي العام لليوم', journal.dayTotals, total: true));
+    return rows;
   }
-
-  pw.Widget _cell(
-    String text, {
-    bool bold = false,
-    bool rightAligned = false,
-    PdfColor? color,
-    PdfColor? fill,
-    PdfColor? rowBand,
-    double fontSize = 8.6,
-  }) =>
-      pw.Container(
-        alignment: rightAligned ? pw.Alignment.centerRight : pw.Alignment.center,
-        color: fill ?? rowBand,
-        padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3.5),
-        child: pw.Text(
-          text,
-          textAlign: rightAligned ? pw.TextAlign.right : pw.TextAlign.center,
-          textDirection: pw.TextDirection.rtl,
-          style: pw.TextStyle(
-            fontSize: fontSize,
-            color: color ?? _ink,
-            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          ),
-        ),
-      );
 }

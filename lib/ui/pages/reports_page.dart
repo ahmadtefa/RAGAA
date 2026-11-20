@@ -41,6 +41,8 @@ class _ReportsPageState extends State<ReportsPage> {
   ReportData? _report;
   DailyJournal? _journal;
   bool _journalLoading = false;
+  int _reportRequest = 0;
+  int _journalRequest = 0;
   bool _loading = true;
   String? _lastExportedPath;
   String? _lastExportLabel;
@@ -82,14 +84,20 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Future<void> _reload() async {
     _lastSeenRevision = widget.controller.dataRevision;
-    setState(() => _loading = true);
+    final request = ++_reportRequest;
+    ++_journalRequest;
+    setState(() {
+      _loading = true;
+      _journal = null;
+      _journalLoading = false;
+    });
     final filter = ReportFilter(
       range: _computeRange(),
       outletIds: Set.unmodifiable(_selectedOutletIds),
       shiftNumber: _selectedShift,
     );
     final data = await widget.controller.buildReport(filter);
-    if (mounted) {
+    if (mounted && request == _reportRequest) {
       setState(() {
         _report = data;
         _loading = false;
@@ -143,12 +151,10 @@ class _ReportsPageState extends State<ReportsPage> {
   /// Builds the electronic daily journal for the first day of the selected
   /// period (the paper journal is always a single operational day).
   Future<void> _loadJournal() async {
+    final request = ++_journalRequest;
     setState(() => _journalLoading = true);
-    final journal = await widget.controller.buildDailyJournal(
-      _computeRange().start,
-      outletIds: Set.unmodifiable(_selectedOutletIds),
-    );
-    if (mounted) {
+    final journal = await _journalOrNull();
+    if (mounted && request == _journalRequest) {
       setState(() {
         _journal = journal;
         _journalLoading = false;
@@ -157,7 +163,7 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Future<void> _exportJournal({required bool asPdf}) async {
-    final journal = _journal ?? await _journalOrNull();
+    final journal = await _journalOrNull();
     if (journal == null) return;
     try {
       final path = await widget.controller.quickExportJournal(
