@@ -193,6 +193,36 @@ jobs:
           if (!(Test-Path "artifacts/RAGAA-Setup.exe")) { throw "RAGAA-Setup.exe was not produced!" }
           Get-Item "artifacts/RAGAA-Setup.exe" | Select-Object FullName, Length
 
+      - name: Smoke-test the installer (silent install, shortcut, uninstall)
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP "RAGAA-installed"
+          if (Test-Path $target) { Remove-Item $target -Recurse -Force }
+          $install = Start-Process -FilePath "artifacts\RAGAA-Setup.exe" `
+            -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/SP-","/DIR=`"$target`"" `
+            -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "installer exited with $($install.ExitCode)" }
+          foreach ($file in @("ragaa.exe","flutter_windows.dll","sqlite3.dll")) {
+            if (!(Test-Path (Join-Path $target $file))) { throw "$file is missing after installation" }
+          }
+          if (!(Test-Path (Join-Path $target "data\flutter_assets\fonts\Amiri-Regular.ttf"))) {
+            throw "the bundled Arabic font is missing after installation"
+          }
+          Get-ChildItem $target | Select-Object Name, Length | Format-Table -AutoSize
+          $startMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\RAGAA"
+          $shortcut = Get-ChildItem $startMenu -Filter *.lnk -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -notlike "*لغاء*" } | Select-Object -First 1
+          if ($null -eq $shortcut) { throw "no Start-menu shortcut was created in $startMenu" }
+          Write-Host "Start-menu shortcut: $($shortcut.FullName)"
+          # A normal uninstall must remove the program but keep user data outside it.
+          $uninstaller = Get-ChildItem $target -Filter "unins*.exe" | Select-Object -First 1
+          if ($null -eq $uninstaller) { throw "no uninstaller was installed" }
+          $uninstall = Start-Process -FilePath $uninstaller.FullName `
+            -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait -PassThru
+          Start-Sleep -Seconds 5
+          if (Test-Path (Join-Path $target "ragaa.exe")) { throw "uninstall left ragaa.exe behind" }
+          Write-Host "Installer smoke test passed (exit codes $($install.ExitCode)/$($uninstall.ExitCode))."
+
       - name: Package portable Windows folder (ZIP)
         shell: pwsh
         run: |
@@ -301,6 +331,31 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk artifacts/RAGAA-release.apk
           ls -lh artifacts/RAGAA-release.apk
           sha256sum artifacts/RAGAA-release.apk | tee artifacts/RAGAA-release.apk.sha256
+
+      - name: Verify the APK (ABIs, bundled fonts, signature)
+        run: |
+          set -euo pipefail
+          APK=artifacts/RAGAA-release.apk
+          echo "--- ABIs ---"
+          unzip -l "$APK" | grep -E "lib/(arm64-v8a|armeabi-v7a|x86_64)/libapp.so" || true
+          for abi in arm64-v8a armeabi-v7a; do
+            unzip -l "$APK" | grep -q "lib/$abi/libapp.so" || { echo "missing $abi native library"; exit 1; }
+          done
+          echo "--- Arabic fonts & assets ---"
+          unzip -l "$APK" | grep -q "assets/flutter_assets/assets/fonts/Amiri-Regular.ttf" || {
+            echo "the bundled Amiri font is missing"; exit 1; }
+          unzip -l "$APK" | grep -q "assets/flutter_assets/assets/fonts/Tajawal" || true
+          echo "--- manifest & signature ---"
+          unzip -l "$APK" | grep -q "AndroidManifest.xml" || { echo "no AndroidManifest"; exit 1; }
+          unzip -l "$APK" | grep -qE "META-INF/.*\.(RSA|DSA|EC)" ||
+            unzip -l "$APK" | grep -q "META-INF/MANIFEST.MF"
+          APKSIGNER=$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner 2>/dev/null | tail -1 || true)
+          if [ -n "${APKSIGNER:-}" ] && [ -x "$APKSIGNER" ]; then
+            "$APKSIGNER" verify --print-certs "$APK" | head -5
+          else
+            echo "apksigner not found; relying on the Gradle signing step."
+          fi
+          echo "APK verification passed."
 
       - name: Upload Android APK artifact
         uses: actions/upload-artifact@v4
