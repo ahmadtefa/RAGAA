@@ -274,12 +274,16 @@ void main() {
             findsOneWidget,
             reason: '$label: «$navLabel» must stay visible in the bottom bar',
           );
-          // A label that does not fit its slot is drawn with an ellipsis, which
-          // is exactly the "cut label" the client reported.
+          // A label drawn with an ellipsis is narrower than the width its own
+          // text needs: that is exactly the "cut label" the client reported.
+          final paragraph = tester.renderObject<RenderParagraph>(navText);
+          final naturalWidth = paragraph.getMaxIntrinsicWidth(double.infinity);
           expect(
-            tester.getSize(navText).width,
-            lessThan(slotWidth),
-            reason: '$label: «$navLabel» is truncated inside its '
+            paragraph.size.width,
+            greaterThanOrEqualTo(naturalWidth - 1),
+            reason: '$label: «$navLabel» needs '
+                '${naturalWidth.toStringAsFixed(1)}dp but is clipped to '
+                '${paragraph.size.width.toStringAsFixed(1)}dp inside its '
                 '${slotWidth.toStringAsFixed(0)}dp slot',
           );
         }
