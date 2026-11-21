@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20261121000429
+Start time: 20261121002038
 Username: runnervmbpeip\runneradmin
 RunAs User: runnervmbpeip\runneradmin
 Configuration Name: 
 Machine: runnervmbpeip (Microsoft Windows NT 10.0.26100.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\7c0ff681-867f-4c19-b243-e635afd05b51.ps1'
-Process ID: 3176
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\88926e0c-7ca6-4ae4-b25a-16f64db95771.ps1'
+Process ID: 1388
 PSVersion: 7.6.10
 PSEdition: Core
 GitCommitId: 7.6.10
@@ -51,5 +51,5 @@ Uninstaller exit code: 0
 Installer smoke test passed.
 **********************
 PowerShell transcript end
-End time: 20261121000437
+End time: 20261121002048
 **********************
