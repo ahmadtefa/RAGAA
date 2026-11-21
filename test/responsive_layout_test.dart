@@ -3,6 +3,7 @@ import 'dart:io';
 // ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -39,6 +40,14 @@ void main() {
   late RagaaController controller;
 
   setUpAll(() async {
+    // Measure real Arabic metrics: without the shipped font every glyph is a
+    // full square (the test placeholder font), which would report false
+    // clipping on text that fits perfectly on a device.
+    final fontLoader = FontLoader('Tajawal')
+      ..addFont(rootBundle.load('assets/fonts/Tajawal-Regular.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/Tajawal-Bold.ttf'));
+    await fontLoader.load();
+
     SharedPreferences.setMockInitialValues({});
     tempDir = await Directory.systemTemp.createTemp('ragaa_responsive_');
     final dbPath = p.join(tempDir.path, 'data', 'responsive.db');
