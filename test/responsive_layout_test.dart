@@ -257,6 +257,7 @@ void main() {
 
         // The home destination is short enough to never be cut in a 5-slot bar.
         expect(find.text('الرئيسية'), findsOneWidget, reason: label);
+        final slotWidth = width / 5;
         for (final navLabel in const [
           'الرئيسية',
           'التحصيل',
@@ -264,13 +265,22 @@ void main() {
           'التقارير',
           'المزيد',
         ]) {
+          final navText = find.descendant(
+            of: find.byType(NavigationBar),
+            matching: find.text(navLabel),
+          );
           expect(
-            find.descendant(
-              of: find.byType(NavigationBar),
-              matching: find.text(navLabel),
-            ),
+            navText,
             findsOneWidget,
             reason: '$label: «$navLabel» must stay visible in the bottom bar',
+          );
+          // A label that does not fit its slot is drawn with an ellipsis, which
+          // is exactly the "cut label" the client reported.
+          expect(
+            tester.getSize(navText).width,
+            lessThan(slotWidth),
+            reason: '$label: «$navLabel» is truncated inside its '
+                '${slotWidth.toStringAsFixed(0)}dp slot',
           );
         }
 

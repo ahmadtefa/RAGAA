@@ -346,7 +346,7 @@ class _RagaaShellPageState extends State<RagaaShellPage> {
           // so its text scale is clamped instead of being cut with an ellipsis
           // when the system font is set to 200%. Screen content is unaffected.
           bottomNavigationBar: MediaQuery.withClampedTextScaling(
-            maxScaleFactor: 1.25,
+            maxScaleFactor: 1.2,
             child: NavigationBar(
               // Four daily screens on the bar and one door to the rest: an
               // operator on the backup or audit screen sees that module lit in
