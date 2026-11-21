@@ -26,15 +26,15 @@ Got dependencies!
 22 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 00:00 +0: loading /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart
-00:00 +0: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
+00:00 +0: /home/runner/work/RAGAA/RAGAA/test/schema_migration_test.dart: upgrades a legacy v1 database to the current schema without data loss
 00:00 +1: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
 00:00 +2: /home/runner/work/RAGAA/RAGAA/test/review_samples_generation_test.dart: generates the review daily-journal and report samples
 review samples: 8 outlets, 18 recorded shifts, grand total 8190000 piastres
 00:06 +3: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: (setUpAll)
-00:07 +3: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
-00:07 +4: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale
+00:06 +3: /home/runner/work/RAGAA/RAGAA/test/reports_and_export_test.dart: computes daily, weekly, monthly, and custom reports with outlet/shift filters
+00:06 +4: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale
 00:08 +5: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale
-00:10 +6: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale
+00:09 +6: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: dashboard survives every phone/tablet/desktop width and scale
 00:16 +7: /home/runner/work/RAGAA/RAGAA/test/widget_test.dart: full desktop workflow: outlets, collections, duplicate guard, reports, audit, and backup
 00:17 +8: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collections survives every phone/tablet/desktop width and scale
 00:17 +9: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collections survives every phone/tablet/desktop width and scale
@@ -54,8 +54,8 @@ Screenshot written: review/ui/screenshots/07_phone_drawer_412.png
 Screenshot written: review/ui/screenshots/08_phone_entry_form_412.png
 Screenshot written: review/ui/screenshots/09_tablet_dashboard_834.png
 Screenshot written: review/ui/screenshots/10_desktop_dashboard_1440.png
+00:31 +15: /home/runner/work/RAGAA/RAGAA/test/ui_screenshots_test.dart: captures the real UI at phone, tablet and desktop sizes
 Screenshot written: review/ui/screenshots/11_desktop_dashboard_1440_text150.png
-00:31 +15: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collections survives every phone/tablet/desktop width and scale
 00:31 +16: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:32 +17: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:32 +18: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
@@ -65,21 +65,51 @@ Screenshot written: review/ui/screenshots/11_desktop_dashboard_1440_text150.png
 00:34 +22: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:34 +23: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:34 +24: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
-00:34 +25: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
-00:34 +26: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
+00:35 +25: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
+00:35 +26: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:36 +27: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:36 +28: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:36 +29: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:36 +30: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:36 +31: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
-00:36 +32: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
+00:37 +32: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: outlets survives every phone/tablet/desktop width and scale
 00:39 +33: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: reports survives every phone/tablet/desktop width and scale
-00:48 +34: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: audit survives every phone/tablet/desktop width and scale
+00:47 +34: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: audit survives every phone/tablet/desktop width and scale
 00:53 +35: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: backup survives every phone/tablet/desktop width and scale
 00:58 +36: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: phone shell keeps every navigation label readable and never duplicates the record-collection button
-01:05 +37: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: period selector degrades to a dropdown on phones and keeps all four options reachable
-01:06 +38: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: Arabic outlet names are laid out horizontally, never letter by letter
-01:08 +39: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collection amounts and totals stay fully visible inside their cards on the narrowest phone
-01:08 +40: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: the on-screen keyboard never covers the entry save bar
-01:09 +41: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: (tearDownAll)
-01:10 +41: All tests passed!
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a value less than <64.0>
+  Actual: <64.0>
+   Which: is not a value less than <64.0>
+shell @ 320dp / 100%: «الرئيسية» is truncated inside its 64dp slot
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart:279:11)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart line 279
+The test description was:
+  phone shell keeps every navigation label readable and never duplicates the record-collection
+  button
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:59 +36 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: phone shell keeps every navigation label readable and never duplicates the record-collection button [E]
+  Test failed. See exception logs above.
+  The test description was: phone shell keeps every navigation label readable and never duplicates the record-collection button
+  
+00:59 +36 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: period selector degrades to a dropdown on phones and keeps all four options reachable
+01:00 +37 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: Arabic outlet names are laid out horizontally, never letter by letter
+01:01 +38 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: collection amounts and totals stay fully visible inside their cards on the narrowest phone
+01:03 +39 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: the on-screen keyboard never covers the entry save bar
+01:03 +40 -1: /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: (tearDownAll)
+01:04 +40 -1: Some tests failed.
+
+Failing tests:
+  /home/runner/work/RAGAA/RAGAA/test/responsive_layout_test.dart: phone shell keeps every navigation label readable and never duplicates the record-collection button
